@@ -1,0 +1,1349 @@
+CUBIC.xmile
+Top-Level Model:
+Indicator_debriefing = 0
+    UNITS: 1
+
+Causal_loop_diagram:
+Available_gravel(t) = Available_gravel(t - dt) + (Gravel_production - Gravel_sales) * dt
+    INIT Available_gravel = 1
+    UNITS: 1
+Disposal_volume(t) = Disposal_volume(t - dt) + (Gravel_extraction - Disposal - Landscaping) * dt
+    INIT Disposal_volume = 1000000
+    UNITS: 1
+Gravel_quarries(t) = Gravel_quarries(t - dt) + (Licenses - Gravel_extraction) * dt
+    INIT Gravel_quarries = 1100000000
+    UNITS: 1
+Disposal = Disposable_material {UNIFLOW}
+    UNITS: 1/year
+Gravel_extraction = 1+(Demand_for_extracted_gravel/Profitability_extraction_and_and_disposal*0) {UNIFLOW}
+    UNITS: 1/year
+Gravel_production = Gravel_extraction {UNIFLOW}
+    UNITS: 1/year
+Gravel_sales = Aggregate_demand {UNIFLOW}
+    UNITS: 1/year
+Landscaping = 1+(0*Disposal_coverage)
+    UNITS: 1/year
+Licenses = Gravel_extraction {UNIFLOW}
+    UNITS: 1/year
+Aggregate_demand = 1
+    UNITS: 1/year
+Demand_for_extracted_gravel = Aggregate_demand-Recycled_aggregate_supply-Recovery_of_aggregates_from_excavation_material
+    UNITS: 1/year
+Disposable_CDW = Local_CDW-Recycled_aggregate_supply
+    UNITS: 1
+Disposable_excavation_material = Local_excavation_material/Recovery_of_aggregates_from_excavation_material
+    UNITS: year
+Disposable_material = 1+(Disposable_excavation_material+Disposable_CDW*0)
+    UNITS: 1/year
+Disposal_coverage = Disposal_volume*Disposal
+    UNITS: 1/year
+Disposal_price = 1+(0*Disposal_coverage)
+    UNITS: 1/year
+Gravel_coverage = Available_gravel/Gravel_sales
+    UNITS: year
+Gravel_price = Gravel_coverage
+    UNITS: year
+Innovation_factor = 1
+    UNITS: 1
+Local_CDW = 10
+    UNITS: 1
+Local_excavation_material = 10
+    UNITS: year
+Perceived_additional_process_costs = Recycled_aggregate_experience
+    UNITS: 1
+Price_advantage_recycled_aggregates = SMTH1(Gravel_price+Recycled_aggregate_price/Perceived_additional_process_costs, Recycled_aggregate_price) {DELAY CONVERTER}
+    UNITS: 1
+Profitability_extraction_and_and_disposal = 1*(0*Gravel_price/Disposal_price)
+    UNITS: Years^2
+Recovery_of_aggregates_from_excavation_material = 1+(0*Gravel_quarries)
+    UNITS: 1
+Recycled_aggregate_experience = Recycled_aggregate_supply*Innovation_factor
+    UNITS: 1
+Recycled_aggregate_price = 1
+    UNITS: 1
+Recycled_aggregate_supply = SMTH1(Price_advantage_recycled_aggregates*Recycled_aggregate_experience, 1, 1) {DELAY CONVERTER}
+    UNITS: 1
+
+Extraction:
+Gravel_quarries_according_to_cantonal_Structure_Plan[Region](t) = Gravel_quarries_according_to_cantonal_Structure_Plan[Region](t - dt) + (Introduction_of_new_gravel_quarries_in_Cantonal_Structure_Plan[Region] - License_application[Region]) * dt
+    INIT Gravel_quarries_according_to_cantonal_Structure_Plan[Region] = Initial_gravel_quarries_according_to_cantonal_Structure_Plan
+    UNITS: t
+    DOCUMENT: The Cantonal Structure Plan is the central instrument for the regulation of spatial development in Switzerland, such as the access to gravel quarries and potential landfills sites, defining the potential gravel quarries within a region.
+Licensed_gravel_quarries[Region](t) = Licensed_gravel_quarries[Region](t - dt) + (Licensing[Region] - Gravel_extraction[Region]) * dt
+    INIT Licensed_gravel_quarries[Region] = Initial_licensed_gravel_quarries
+    UNITS: t
+    DOCUMENT: The licensed gravel quarries within a region, accessible for the extraction of gravel and the consequent disposal of material. 
+Potential_gravel_quarries[Region](t) = Potential_gravel_quarries[Region](t - dt) + (License_application[Region] - Licensing[Region]) * dt
+    INIT Potential_gravel_quarries[Region] = Initial_potential_gravel_quarries
+    UNITS: t
+    DOCUMENT: The gravel quarries that are applied for by companies and can be licensed (or rejected) upon agreement with local actors in a democratic process. 
+Regional_license_costs[Region](t) = Regional_license_costs[Region](t - dt) + (Adjustment_license_costs[Region]) * dt
+    INIT Regional_license_costs[Region] = Reference_license_costs
+    UNITS: CHF/t
+    DOCUMENT: The actual regional costs for gravel extraction per ton of material. It is assumed that this license income remains within the local community, compensating for "Not-in-my-backyard" concerns. 
+Untapped_geological_reserves[Region](t) = Untapped_geological_reserves[Region](t - dt) + ( - Introduction_of_new_gravel_quarries_in_Cantonal_Structure_Plan[Region]) * dt
+    INIT Untapped_geological_reserves[Region] = Initial_geological_reserves
+    UNITS: t
+    DOCUMENT: The total remaining geological reserves in Switzerland that are not yet introduced in cantonal structure plans.
+Adjustment_license_costs[Region] = Desired_adjustment_of_license_costs
+    UNITS: CHF/t/year
+    DOCUMENT: The annual adjustment of license cots, balancing the desired and the actual regional costs.
+Gravel_extraction[Region] = IF Switch_GMB_structure=1 THEN GMB_input:_Assumed_extraction ELSE MIN(Maximal_gravel_extraction, Planned_gravel_extraction) {UNIFLOW}
+    UNITS: t/Years
+    DOCUMENT: The annual gravel extraction within the region, resulting an equal amount of disposal volume. 
+Introduction_of_new_gravel_quarries_in_Cantonal_Structure_Plan[Region_A] = IF Switch_Spatial_planning_limiting_Region_A=1  THEN 0 ELSE MIN((License_application), Maximum_introduction_to_cantonal_structure_plan)
+    UNITS: t/Years
+    DOCUMENT: The cantonal structure plan contains sufficient gravel reserves and adds new reserves to the plan based on historic extraction. Activating the switch introduces the assumption that in the long run, no further gravel reserves will be made available. 
+Introduction_of_new_gravel_quarries_in_Cantonal_Structure_Plan[Region_B] = IF Switch_Spatial_planning_limiting_Region_B=1 THEN 0 ELSE MIN((License_application[Region_B]),  Maximum_introduction_to_cantonal_structure_plan)
+    UNITS: t/Years
+    DOCUMENT: The cantonal structure plan contains sufficient gravel reserves and adds new reserves to the plan based on historic extraction. Activating the switch introduces the assumption that in the long run, no further gravel reserves will be made available. 
+License_application[Region] = MIN(Desired_License_application, Maximal_licensing)+Gravel_extraction*0
+    UNITS: t/Years
+    DOCUMENT: The annual desired licenses that companies apply for. 
+Licensing[Region] = IF Switch:_Policy_Minimum_gravel_quarry_licenses=1 AND TIME>Starting_Time_Policy:_Minimum_gravel_supply THEN Required_licensed_gravel_quarries ELSE  ((Potential_gravel_quarries/Time_to_license_gravel_quarries)*Eligibility_of_licensing)
+    UNITS: t/Years
+    DOCUMENT: Pending the eligibility of licenses (financial compensation), licenses are granted by local communities. 
+"Max._recoverable_gravel"[Region] = Settlement.Excavation_Material*Settlement.Gravel_content_excavation_material
+    UNITS: t/year
+    DOCUMENT: Local and imported excavation material have a theoretical gravel content of 30%, which constitutes the maximum amount of recoverable gravel. 
+Abundance_availability_of_geological_reserves[Region] = 10
+    UNITS: 1
+    DOCUMENT: This constant varies the abundance of natural resources, e.g. by reducing the abundance one can simulate the regions without access to gravel. 
+Adjustment_time_license_costs = 3
+    UNITS: year
+    DOCUMENT: The regional adjustment of license costs is assumed to take 3 years for the whole region.
+Attractiveness_of_extraction_for_local_community[Region] = ((Regional_license_costs-Perceived_costs_by_local_community)/Reference_license_costs)
+    UNITS: 1
+    DOCUMENT: If the regional license costs deviate from the perceived costs by the local community, the attractiveness of extraction for the local community decreases. It indicates a increase of the Not-in-backyard phenomena.
+Desired_adjustment_of_license_costs[Region] = Regional_license_costs*(-Attractiveness_of_extraction_for_local_community*Effect_of_profitability_on_willingness_to_pay)//Adjustment_time_license_costs
+    UNITS: CHF/t/year
+    DOCUMENT: The annual adjustment per ton of potentially extracted gravel  
+Desired_amount_of_extracted_gravel[Region] = Desired_gravel_production*Desired_fraction_of_extracted_Gravel
+    UNITS: t/year
+    DOCUMENT: The amount of desired gravel extraction, based on profitability and the desired fraction of extracted gravel. 
+Desired_amount_of_recovered_gravel[Region] = Desired_gravel_production*Desired_fraction_of_Gravel_from_excavation_material
+    UNITS: t/year
+    DOCUMENT: The amount of desired recovered gravel, based on profitability and the desired fraction of recovered gravel. 
+Desired_coverage_gravel_reserves = Duration_of_concessions
+    UNITS: year
+    DOCUMENT: The desired coverage of granted gravel reserves is 10 years, which covers the average duration for granting gravel reserves.
+Desired_fraction_of_extracted_Gravel[Region] = Initial_fraction_Gravel_from_extraction/(Initial_fraction_Gravel_from_extraction+1/ (Relative_attractiveness_of_extraction_and_disposal_to_recovery_from_excavation^Sensitivity_of_desired_fraction_of_extracted_Gravel)*(1-Initial_fraction_Gravel_from_extraction))
+    UNITS: 1
+    DOCUMENT: 1 divided by the desired fraction of extracted gravel ensures the effect remains within 0 and 1, and is adjusted according to the relative attractiveness of excavation. An increase in the relative attractiveness is followed by an increase in the desired fraction of extraction.
+Desired_fraction_of_Gravel_from_excavation_material[Region] = 1-Desired_fraction_of_extracted_Gravel
+    UNITS: 1
+    DOCUMENT: If the desired gravel from extracted gravel is <1, the remaining fraction must origin from the gravel from excavation material. 
+Desired_gravel_extraction[Region] = SMTH1(Desired_possible_amount_of_extracted_gravel, Time_to_adjust_gravel_production, Initial_Desired_gravel_extraction) {DELAY CONVERTER}
+    UNITS: t/year
+    DOCUMENT: The desired gravel from extraction, based on the local profitability and availability is adjusted according to the adjustment time.
+Desired_gravel_production[Region_A] = MAX(0, (Effect_of_profitability_on_gravel_production*Market.Local_primary_gravel_demand[Region_A])+Desired_production_exports[Region_A])
+    UNITS: t/year
+    DOCUMENT: The desired gravel production multiplies the local demand for primary gravel with the profitability, increasing/decreasing the production with a increase/decrease of profitability.  
+Desired_gravel_production[Region_B] = MAX(0,( Effect_of_profitability_on_gravel_production*Market.Local_primary_gravel_demand[Region_B])+Desired_production_exports[Region_B])
+    UNITS: t/year
+    DOCUMENT: The desired gravel production multiplies the local demand for primary gravel with the profitability, increasing/decreasing the production with a increase/decrease of profitability.  
+Desired_License_application[Region] = Required_licensed_gravel_quarries*Effect_of_profitability_on_desired_license_application
+    UNITS: t/year
+    DOCUMENT: The desired gravel license applications reflect the regional demand for gravel and the profitability of extraction and disposal. 
+Desired_possible_amount_of_extracted_gravel[Region] = IF Maximum_gravel_production <=Desired_gravel_production  THEN Maximal_gravel_extraction ELSE IF Desired_amount_of_extracted_gravel <= "Max._recoverable_gravel"  AND  Desired_amount_of_recovered_gravel<="Max._recoverable_gravel" THEN Desired_amount_of_extracted_gravel ELSE IF Desired_amount_of_extracted_gravel<=Maximal_gravel_extraction AND  Desired_amount_of_recovered_gravel > "Max._recoverable_gravel" THEN Desired_gravel_production-"Max._recoverable_gravel" ELSE IF Desired_amount_of_extracted_gravel <=Maximal_gravel_extraction  AND  Desired_amount_of_recovered_gravel>= "Max._recoverable_gravel" THEN Desired_amount_of_extracted_gravel-Desired_amount_of_recovered_gravel ELSE Desired_amount_of_extracted_gravel
+    UNITS: t/year
+    DOCUMENT: The amount of desired recovered gravel, respecting the maximum amount of gravel from extraction. 
+Desired_possible_amount_of_recovered_gravel[Region] = IF Maximum_gravel_production <=Desired_gravel_production  THEN "Max._recoverable_gravel" ELSE IF Desired_amount_of_extracted_gravel <=Maximal_gravel_extraction AND  Desired_amount_of_recovered_gravel<="Max._recoverable_gravel" THEN Desired_amount_of_recovered_gravel ELSE IF Desired_amount_of_extracted_gravel<=Maximal_gravel_extraction AND  Desired_amount_of_recovered_gravel > "Max._recoverable_gravel" THEN "Max._recoverable_gravel" ELSE IF Desired_amount_of_extracted_gravel<=Maximal_gravel_extraction  AND  Desired_amount_of_recovered_gravel>= "Max._recoverable_gravel" THEN Desired_gravel_production-Maximal_gravel_extraction ELSE Desired_amount_of_recovered_gravel
+    UNITS: t/year
+    DOCUMENT: The amount of desired recovered gravel, respecting the maximum amount of recoverable gravel. 
+Desired_production_exports[Region_A] = Effect_of_interregional_profitability_on_additional_gravel_produciton[Region_A]*Market.Aggregate_Imports[Region_B]
+    UNITS: t/Years
+Desired_production_exports[Region_B] = Effect_of_interregional_profitability_on_additional_gravel_produciton[Region_B]*Market.Aggregate_Imports[Region_A]
+    UNITS: t/Years
+Desired_reserve_coverage_according_to_cantonal_structure_plan = 25
+    UNITS: year
+    DOCUMENT: Indicates the coverage of potential gravel reserves. 25 years is the current planning horizon of such plan, consideration the long duration of granting a extraction sites and the potential NIMBY complications. 
+Desired_stock_adjustment_of_licensed_gravel_quarries[Region] = IF Switch:_Policy_Minimum_gravel_quarry_licenses=1 THEN (Desired_stock_Licensed_gravel_quarries-Licensed_gravel_quarries)/Time_to_grant_gravel_quarries_in_policy_minimum_supply ELSE  (Desired_stock_Licensed_gravel_quarries-Licensed_gravel_quarries)/Time_to_license_gravel_quarries
+    UNITS: t/Years
+    DOCUMENT: The desired adjustment of the licensed gravel quarries equation compares the current number of licensed gravel quarries to the desired number of licensed gravel quarries. This adjustment happens gradually over the normal time to grant licenses.
+Desired_stock_Licensed_gravel_quarries[Region] = IF Switch:_Policy_Minimum_gravel_quarry_licenses=1 AND TIME>Starting_Time_Policy:_Minimum_gravel_supply THEN Minimum_gravel_reserve*Time_to_grant_gravel_quarries_in_policy_minimum_supply ELSE  Expected_gravel_from_extraction*Duration_of_concessions
+    UNITS: t
+    DOCUMENT: Assumes that the desired stock of licensed gravel quarries is based on the current gravel extraction rate times the normal time receive a license. 
+Duration_of_concessions = 10
+    UNITS: year
+    DOCUMENT: It is assumed that it takes 10 years from the application for a license to the start of extraction activities.
+Effect_of_gravel_reserve_coverage_on_gravel_sourcing[Region] = Normalized_gravel_reserve_coverage^Sensitivity_of_gravel_reserve_coverage_on_gravel_production
+    UNITS: 1
+    DOCUMENT: The attractiveness of gravel extraction depends on the gravel reserve coverage, an increasing coverage increases the attractiveness of gravel extraction ,wheras shrinking coverage increases the attractiveness of recovery from excavation material. 
+Effect_of_interregional_profitability_on_additional_gravel_produciton[Region] = Profitability."Inter-regional_profitability"^Sensitivity_of_gravel_production_to_import_profitability
+    UNITS: 1
+Effect_of_local_reserves_on_perceived_costs_by_local_community[Region] = 1/Share_of_reserves^Sensitivity_effect_of_local_reserves
+    UNITS: 1
+    DOCUMENT: A scarcity of gravel reserves impacts the perceived costs by the community. 
+Effect_of_profitability_on_desired_license_application[Region] = Profitability.Regional_profitability^Sensitivity_of_profitability_on_desired_license_application
+    UNITS: 1
+    DOCUMENT: With an increasing profitability, companies are willing to increase the required gravel reserves.
+Effect_of_profitability_on_gravel_production[Region] = Profitability.Regional_profitability^Sensitivity_of_gravel_production_to_profitability
+    UNITS: 1
+Effect_of_profitability_on_willingness_to_pay[Region] = MIN(1, (Profitability.Regional_profitability^Sensitivity_willingness_to_pay))
+    UNITS: 1
+    DOCUMENT: If companies are not profitabile, the willingness to pay for regional license costs is assumed to be low, and high if the company is profitable. 
+Effect_of_settlement_pressure_on_perceived_license_costs_of_local_community[Region] = Settlement.Normalized_Settlement_pressure^Sensitivity_settlement_pressure
+    UNITS: 1
+    DOCUMENT: An increasing settlement pressure is assumed to have an effect on the perceived license costs,
+Eligibility_of_licensing[Region] = MIN(1.2,EXP(Sensitivity_of_Eligibility_of_licensing*Attractiveness_of_extraction_for_local_community))
+    UNITS: 1
+    DOCUMENT: The attractiveness of of extraction influences the licensing of quarries. Is assumes a value between 0-1, assuming either the desired license application or less is granted. 
+Expected_gravel_from_extraction[Region] = SMTH1(Gravel_extraction,Time_to_adjust_expectations_about_extraction, Planned_gravel_extraction) {DELAY CONVERTER}
+    UNITS: t/Years
+    DOCUMENT: The expected extraction rate is formed over a certain time period, forming the basis for the required license for gravel quarries. 
+GMB_input:_Assumed_extraction[Region] = Licensed_gravel_quarries/Duration_of_concessions
+    UNITS: t/year
+    DOCUMENT: The original formulation of the extraction rate from licenses gravel quarries depended on the duration of concessions. 
+Gravel_reserve_fraction_of_demand = 0.2
+    UNITS: 1
+    DOCUMENT: A safety fraction of the total aggregate demand that is added to the desired minimum gravel reserve.  
+Initial_Desired_gravel_extraction[Region] = Market.Local_primary_gravel_demand*Initial_fraction_Gravel_from_extraction
+    UNITS: t/Years
+    DOCUMENT: The initial desired gravel extraction to cover the local primary gravel demand. 
+Initial_fraction_Gravel_from_excavation_material[Region] = INIT(Reference_Gravel_from_excavation_material/Market.Local_primary_gravel_demand)
+    UNITS: 1
+    DOCUMENT: Determines the initial fraction of gravel from excavation material relative to overall demand for primary gravel. 
+Initial_fraction_Gravel_from_extraction[Region] = 1-Initial_fraction_Gravel_from_excavation_material
+    UNITS: 1
+    DOCUMENT: Deducting the initial fraction of gravel from excavation material from 1 provides  the initial fraction of gravel from extraction relative to overall demand for primary gravel. 
+Initial_geological_reserves[Region] = Reference_initial_geological_reserves*Scarcity_factor
+    UNITS: t
+Initial_gravel_quarries_according_to_cantonal_Structure_Plan[Region] = (Desired_reserve_coverage_according_to_cantonal_structure_plan*Expected_gravel_from_extraction)
+    UNITS: t
+    DOCUMENT: Initial value for the Potential gravel quarries according to cantonal Structure Plan.
+Initial_licensed_gravel_quarries[Region] = INIT(Planned_gravel_extraction*Duration_of_concessions)
+    UNITS: t
+    DOCUMENT: Initial value of the stock licensed gravel quarries.
+Initial_potential_gravel_quarries[Region] = Desired_License_application*Time_to_license_gravel_quarries
+    UNITS: t
+Initial_reserves[Region] = INIT(Initial_gravel_quarries_according_to_cantonal_Structure_Plan+Initial_geological_reserves+Initial_potential_gravel_quarries)
+    UNITS: t
+Maximal_gravel_extraction[Region] = MAX(0, Licensed_gravel_quarries/Time_to_adjust_extraction_capacity)
+    UNITS: t/Years
+Maximal_licensing[Region] = MAX(0, Gravel_quarries_according_to_cantonal_Structure_Plan/Minimum_time_to_grant_license)
+    UNITS: t/Years
+    DOCUMENT: The maximum licensing of gravel quarries, considering the remaining stock and the time to grant a license. 
+Maximum_gravel_production[Region] = "Max._recoverable_gravel"+Maximal_gravel_extraction
+    UNITS: t/year
+    DOCUMENT: The maximum gravel production in Region, based on the maximum of gravel that can be recovered from excavation material, and the maximum of gravel that can be extracted in gravel quarries. 
+Maximum_introduction_to_cantonal_structure_plan[Region] = MAX(0, Untapped_geological_reserves/Minimum_time_to_grant_license)
+    UNITS: t/Years
+Maximum_supply_secondary_aggregates[Region] = "Max._recoverable_gravel"+Market.Local_recycable_CDW
+    UNITS: t/year
+    DOCUMENT: The maximum amount of recoverable resources from CDW and excavation material. 
+Minimum_demand_for_primary_gravel[Region] = MAX(0, Settlement.Aggregate_demand-Maximum_supply_secondary_aggregates)
+    UNITS: t/year
+    DOCUMENT: The delta between the demand for aggregates and the maximum supply of secondary aggregates. 
+Minimum_gravel_reserve[Region] = (Settlement.Aggregate_demand*Gravel_reserve_fraction_of_demand )+Minimum_demand_for_primary_gravel
+    UNITS: t/year
+    DOCUMENT: The minimum aggregate reserve that defines the value for the long-term cantonal spatial planning plan. 
+Minimum_stock_required_Gravel_quarries[Region] = Minimum_gravel_reserve*Time_to_assess_gravel_quarry_stock
+    UNITS: t
+Minimum_time_to_grant_license = 5
+    UNITS: year
+    DOCUMENT: Minimum duration of granting access to potential gravel quarries, it is estimated that fast tracking the process could reduce the time to 5 years. 
+Normalized_gravel_reserve_coverage[Region] = SAFEDIV(Perceived_gravel_reserve_coverage, Desired_coverage_gravel_reserves)
+    UNITS: 1
+    DOCUMENT: The reserve coverage is normalized based on the actual coverage divided by the desired gravel reserve coverage.
+Perceived_costs_by_local_community[Region] = IF Switch_local_extraction_levy=1 AND TIME>Time_of_introdcution_extraction_levy_region_A THEN Reference_perceived_costs_by_local_community_levy ELSE  SMTH1(MAX(Reference_license_costs, Reference_license_costs*Effect_of_settlement_pressure_on_perceived_license_costs_of_local_community*Effect_of_local_reserves_on_perceived_costs_by_local_community), Time_to_adjust_expectations_of_local_community, Reference_license_costs)
+    UNITS: CHF/t
+    DOCUMENT: The perceived costs are influenced by the regional availability of gravel and settlement pressure. By multiplying both effects, the local circumstances are reflected, e.g. in rural areas without settlement pressure may balance the perceived costs if gravel becomes scarce. 
+Perceived_gravel_reserve_coverage[Region] = SMTH1(SAFEDIV(Licensed_gravel_quarries, Planned_gravel_extraction, Licensed_gravel_quarries/Maximal_gravel_extraction), Time_to_adjust_perceived_Gravel_reserve_coverage)
+    UNITS: year
+    DOCUMENT: Based on the actual extraction rate, the perceived coverage rate of demand is calculated. 
+Planned_gravel_extraction[Region] = MAX(0, SMTH1(Desired_gravel_extraction+Market.Desired_stock_adjustment_aggregate_market, Time_to_adjust_desired_gravel_extraction, Desired_gravel_extraction)) {DELAY CONVERTER}
+    UNITS: t/year
+    DOCUMENT: The planned gravel extraction adds the stock adjustment of local gravel market to the desired gravel extraction and account for potential im/-exports to other regions.  
+Recovered_gravel_from_excavation_material[Region] = MIN("Max._recoverable_gravel", SMTH1((Desired_possible_amount_of_recovered_gravel), Time_to_adjust_infrastructure_for_gravel_recovery,Reference_Gravel_from_excavation_material)) {DELAY CONVERTER}
+    UNITS: t/year
+    DOCUMENT: The Gravel from excavation material is adjusted to the desired Gravel
+    from excavation material over the adjustment time.
+Recovery_quota_excavation_material[Region] = PERCENT(Recovered_gravel_from_excavation_material//"Max._recoverable_gravel")
+    UNITS: 1
+    DOCUMENT: The rate of recovered gravel relative to the maximum amount of recoverable gravel.
+Reference_Gravel_from_excavation_material[Region_A] = IF Switch:_Disable_recovery_from_excavation_material=1 THEN 0 ELSE 240000
+    UNITS: t/year
+    DOCUMENT: Based on the Material Flow Analysis by Rubli (2018), the Gravel from excavation material in the canton of Zurich was 240.000.
+Reference_Gravel_from_excavation_material[Region_B] = IF Switch:_Disable_recovery_from_excavation_material=1 THEN 0 ELSE 200000
+    UNITS: t/year
+    DOCUMENT: Based on the Material Flow Analysis by Rubli (2018), the Gravel from excavation material in the canton of Zurich was 240.000.
+Reference_initial_geological_reserves[Region] = 10^Abundance_availability_of_geological_reserves
+    UNITS: t
+Reference_license_costs = 4
+    UNITS: CHF/t
+    DOCUMENT: The average license costs is 4 CHF per one ton of extracted gravel in Switzerland in 2020, charged by local authorities/communities. 
+Reference_perceived_costs_by_local_community_levy[Region_A] = 8
+    UNITS: CHF/t
+Reference_perceived_costs_by_local_community_levy[Region_B] = 4
+    UNITS: CHF/t
+Relative_attractiveness_of_extraction_and_disposal_to_recovery_from_excavation[Region] = Profitability.Relative_profitability_of_extraction_against_recovery*Effect_of_gravel_reserve_coverage_on_gravel_sourcing
+    UNITS: 1
+    DOCUMENT: The attractiveness of extraction and disposal relative to recovery from excavation material depends in the respective profitability and the effect of the gravel reserve coverage.  
+Required_licensed_gravel_quarries[Region] = IF Switch:_Policy_expropriation=1 AND TIME >Starting_Time_Policy:_Minimum_gravel_supply THEN  Desired_stock_adjustment_of_licensed_gravel_quarries ELSE MAX(0, (Expected_gravel_from_extraction+Desired_stock_adjustment_of_licensed_gravel_quarries))
+    UNITS: t/Years
+    DOCUMENT: The required licensed gravel quarries are formed by adding the desired stock adjustment to the expected gravel from extraction. The Max function ensures that the desired application only take a non-negative value. 
+Scarcity_factor[Region] = 1
+    UNITS: 1
+Sensitivity_effect_of_local_reserves = 0
+    UNITS: 1
+    DOCUMENT: The sensitivity of local reserves is assumed to be low (0.2), since the assessment of local reserves is ambiguous and geological reserves persist. 
+Sensitivity_of_desired_fraction_of_extracted_Gravel = 5
+    UNITS: 1
+    DOCUMENT: Companies react sensitive to changes in the attractiveness of recovery versus extraction, as changing the means of gravel production does not incur significant investment and is profit driven.
+Sensitivity_of_Eligibility_of_licensing = 0
+    UNITS: 1
+    DOCUMENT: is assumed to be below 1, as the relevance of local objections is trumped by the political demand for local self-sufficiency. Objections based on the NIMBY phenomena reduce the chance for a successful application.
+Sensitivity_of_gravel_production_to_import_profitability = 1
+    UNITS: 1
+Sensitivity_of_gravel_production_to_profitability = 0.5
+    UNITS: 1
+    DOCUMENT: The sensitivity of profitability on gravel production is 0.5, assuming a disproportionate adjustment to the desired production based on a change in profitability. 
+Sensitivity_of_gravel_reserve_coverage_on_gravel_production = 0.2
+    UNITS: 1
+    DOCUMENT: Captures the sensitivity of the gravel extraction to changes in the coverage time of the gravel reserve coverage 
+Sensitivity_of_profitability_on_desired_license_application = 0.5
+    UNITS: 1
+    DOCUMENT: The sensitivity of profitability on desired license application is assumed to be <1, as a a highly (un-)profitable region will still see application for extraction, if local licenses are required. 
+Sensitivity_settlement_pressure = 0
+    UNITS: 1
+    DOCUMENT: is assumed to >1, as a very high settlement pressure in urban areas had shows to highly influence the access to regional resources through extraction and associated extraction costs for companies  (Swisstopo, 2017). 
+Sensitivity_willingness_to_pay = 0
+    UNITS: 1
+    DOCUMENT: Willingness to pay changes according to the companies profitability. The sensitivity is 0.7, assuming that despite a low profitability, regional license costs are considered a long-term investment.
+Share_of_reserves[Region] = (Untapped_geological_reserves+Gravel_quarries_according_to_cantonal_Structure_Plan+Potential_gravel_quarries)/Initial_reserves
+    UNITS: 1
+    DOCUMENT: indicates the share of potential quarries, relative to the total potential reserves. 	
+Starting_Time_Policy:_Minimum_gravel_supply = 30
+    UNITS: year
+Switch_GMB_structure = 0
+    UNITS: 1
+    DOCUMENT: This witch activates the structure that was elicited during the first participative modeling workshop.
+Switch_local_extraction_levy = IF Market.Initiate_incumbent_policies=1 THEN 1 ELSE 0
+    UNITS: 1
+Switch_Spatial_planning_limiting_Region_A = 0
+    UNITS: 1
+    DOCUMENT: Limits the access to natural resources in Region A by setting the inflow of potential gravel quarries to 0. 
+Switch_Spatial_planning_limiting_Region_B = 0
+    UNITS: 1
+    DOCUMENT: Limits the access to natural resources in Region A by setting the inflow of potential gravel quarries to 0. 
+Switch:_Disable_recovery_from_excavation_material = 0
+    UNITS: 1
+Switch:_Policy_expropriation = 0
+    UNITS: 1
+    DOCUMENT: If activated. This policy allows for negative licenses, which means that existing licenses are retracted and considered potential gravel quarries. 
+Switch:_Policy_Minimum_gravel_quarry_licenses = 0
+    UNITS: 1
+    DOCUMENT: This switch activates the policy of granting only the minimum demand of primary gravel, plus a safety fraction. 
+Time_of_introdcution_extraction_levy_region_A = 22
+    UNITS: year
+Time_to_adjust_desired_gravel_extraction = 0.01
+    UNITS: year
+    DOCUMENT: Assumes that the extraction of gravel is planned on a monthly basis. 
+Time_to_adjust_expectations_about_extraction = 1
+    UNITS: year
+    DOCUMENT: Assumes that the expectation of extraction rates are adjusted within 1 year. 
+Time_to_adjust_expectations_of_local_community = 3
+    UNITS: year
+    DOCUMENT: The time it takes for  communities to adjust their expectations regarding the value of local resources. 	
+Time_to_adjust_extraction_capacity = 2
+    UNITS: year
+    DOCUMENT: The time to adjust the maximum extraction capacities relies on the acquisition of additional mining infrastructure and is assumed to be 2 years. 
+Time_to_adjust_gravel_production = 0.1
+    UNITS: year
+    DOCUMENT: The time to adjust gravel production is set to 0.5 years, as only minor adjustment to production infrastrucutre is necessary (relative to the required investment in recovery of gravel).
+Time_to_adjust_infrastructure_for_gravel_recovery = 0.1
+    UNITS: year
+    DOCUMENT: The time to adjust gravel production is set to 0.5 years, reflecting the time it takes to incorporate the relative attractiveness into the actual adjustment to machinery by investments.  
+Time_to_adjust_perceived_Gravel_reserve_coverage = 0.5
+    UNITS: year
+    DOCUMENT: Time it takes companies to assess their gravel reserves. Operational data regarding the remaining ressource levels is scarce, hence it is assumed that every 5 month the companies assess the resource level. 
+Time_to_assess_gravel_quarry_stock = 1
+    UNITS: year
+Time_to_grant_gravel_quarries_in_policy_minimum_supply = 5
+    UNITS: year
+    DOCUMENT: Accompanies the "Policy
+    Minimum gravel quarry licenses". If active, this time to grant licenses is short than the normal time, to reflect that licenses need to be granted more flexible. 
+Time_to_license_gravel_quarries = 10
+    UNITS: year
+
+Landfill:
+Accumulated_recycling_potential(t) = Accumulated_recycling_potential(t - dt) + (Annual_recycling_potential) * dt
+    INIT Accumulated_recycling_potential = Initial_accumulated_recycling_potential
+    UNITS: t
+    DOCUMENT: The accumulated recycling potential is used to assess the accumulated effect of policies on the amount of recycled/recovered material.
+Actual_accumulated_recycled_Material(t) = Actual_accumulated_recycled_Material(t - dt) + (Annual_recycled_aggregate) * dt
+    INIT Actual_accumulated_recycled_Material = Initial_accumulated_recycled_material
+    UNITS: t
+    DOCUMENT: The accumulated recycled and recovered material is used to assess the accumulated effect of policies on the amount of actual recycled/recovered material.
+Disposal_fee[Region](t) = Disposal_fee[Region](t - dt) + (Increase_of_disposal_fee[Region]) * dt {NON-NEGATIVE}
+    INIT Disposal_fee[Region] = Ramp_disposal_fee
+    UNITS: chf/t
+    DOCUMENT: The total disposal fee for both Regions. The fee is passed on to the customer and hence passed on to the reference price.
+Disposal_volume[Region](t) = Disposal_volume[Region](t - dt) + (Volume_from_extraction[Region] + Landscape_adjustment[Region] - Disposal[Region]) * dt
+    INIT Disposal_volume[Region] = Initial_Disposal_volume
+    UNITS: m3
+    DOCUMENT: The available disposal volume in Region A.
+Annual_recycled_aggregate = SUM(Extraction.Recovered_gravel_from_excavation_material)+SUM(Market.Recycled_gravel_production) {UNIFLOW}
+    UNITS: t/year
+    DOCUMENT: The actual annual recycling potential accounts for the actual recycled amount of CDW waste and the recovered gravel from excavation material.
+Annual_recycling_potential = SUM(Settlement.CDW)+SUM(Extraction."Max._recoverable_gravel") {UNIFLOW}
+    UNITS: t/year
+    DOCUMENT: The annual recycling potential accounts for the maximal recyclable amount of CDW waste and the maximal recoverable gravel from excavation material.
+Disposal[Region] = (Disposable_material_including_imports/Settlement.Conversion_t_to_m3) {UNIFLOW}
+    UNITS: m3/year
+    DOCUMENT: Disposal of excavation material and CDW. The min function ensure the disposal remains below the maximum disposal.
+Increase_of_disposal_fee[Region] = (Ramp_disposal_fee-Disposal_fee)/Time_to_pass_fee {UNIFLOW}
+    UNITS: CHF/t/year
+    DOCUMENT: The increase of the disposal fee is a smoothed version of the ramp, to account for the delay of policy introduction and local effect. 
+Landscape_adjustment[Region] = ((Desired_landscape_adjustment-Desired_premature_closure))
+    UNITS: m3/year
+    DOCUMENT: Disposal of material outside of volumes that were generated by gravel extraction are classified as landscape adjustments. A positive value connotes additional volumes, a negative value indicates "holes" in the landscape.
+Volume_from_extraction[Region] = Extraction.Gravel_extraction/Settlement.Conversion_t_to_m3 {UNIFLOW}
+    UNITS: m3/year
+    DOCUMENT: It assumes that 1 ton of gravel extraction equally generates 1 ton of disposal volume.
+Accumulated_recycling_quota = PERCENT(Actual_accumulated_recycled_Material/Accumulated_recycling_potential)
+    UNITS: 1
+    DOCUMENT: Calculates the recycled/recovered amount of material from the overall potential, giving an % of the success rate of the policies. 
+Annual_Recycling_quota = PERCENT(Annual_recycled_aggregate/Annual_recycling_potential)
+    UNITS: 1
+Annual_recycling_quota_CDW[Region] = PERCENT(1-(Market.Disposable_CDW/Settlement.CDW))
+    UNITS: 1
+Basic_Disposal_price = 26
+    UNITS: CHF/t
+    DOCUMENT: The basic disposal price in Region A excluding the transport costs not potential disposal fees. 
+Delta_disposal = (SUM(Settlement.CDW)+SUM(Settlement.Excavation_Material))-(SUM(Disposal)*Settlement.Conversion_t_to_m3)-SUM(Extraction.Recovered_gravel_from_excavation_material)-SUM(Market.Recycled_gravel_production)
+    UNITS: t/year
+Desired_disposal_coverage[Region] = 5
+    UNITS: year
+    DOCUMENT: The desired disposal coverage is set to 5 years, which is a common value according to cantonal waste planning strategie (e.g. Canton XXXXSX)
+Desired_disposal_volume[Region] = (Expected_Disposal*Desired_disposal_coverage)+Minimum_stock_disposal_volume
+    UNITS: m3
+    DOCUMENT: The desired disposal volume should the cover the demand for the disposal of excavation material for the duration of the desired disposal coverage.
+Desired_landscape_adjustment[Region] = MAX(0, Planned_gap_for_landscape_adjustments//Reference_time_to_grant_landscape_adjustment)
+    UNITS: m3/year
+    DOCUMENT: The desired landscape adjustment are based on the long-term GAP in disposal volume and the time to grant volume adjustments. The max function ensures that the landscape adjustments are never negative, hence can only be used to generate volume in addition to gravel extraction. The switch activates this policy. 
+Desired_premature_closure[Region] = (MAX(0, -(Planned_gap_for_landscape_adjustments))//Reference_time_to_prematurely_close_disposal_volume)
+    UNITS: m3/year
+    DOCUMENT: Premature close is based on the long-term GAP in disposal volume and the time to grant volume adjustments. The switch activates this policy to prematurely close excessive disposal volumes. 
+Desired_stock_adjustment[Region] = (Long_term_GAP_disposal_volume)/Time_to_adjust_stock
+    UNITS: m3/year
+    DOCUMENT: The desired stock adjusment is based on the gap in volume and the time to adjust this gap. 
+Disposable_material_after_recovery[Region] = Settlement.Excavation_Material+Market.Disposable_CDW-Extraction.Recovered_gravel_from_excavation_material
+    UNITS: t/year
+    DOCUMENT: Imports/ exports of excavation material are added/ subtracted to/from the disposable excavation material after recovery. This is the entirety of material that is disposed in Region A.
+Disposable_material_including_imports[Region_A] = Disposable_material_after_recovery[Region_A]-Transport.Exports_of_excavation_material_in_Region_B+Transport.Exports_of_excavation_material_in_Region_A
+    UNITS: t/year
+    DOCUMENT: The amount of excavation material and CDW including imports that needs to be disposed of.
+Disposable_material_including_imports[Region_B] = Disposable_material_after_recovery[Region_B]+Transport.Exports_of_excavation_material_in_Region_B-Transport.Exports_of_excavation_material_in_Region_A
+    UNITS: t/year
+    DOCUMENT: The amount of excavation material and CDW including imports that needs to be disposed of.
+Disposal_price[Region] = SMTH1(Reference_Disposal_price*Effect_of_GAP_on_disposal_price, Time_to_adjust_disposal_price, Reference_Disposal_price)
+    UNITS: CHF/t
+    DOCUMENT: The disposal price is driven by the effect of the gap and adjustments to the reference price via policies. 
+Effect_of_GAP_on_disposal_price[Region] = MAX((1+Share_of_gap_excavation_material)^Sensitivity_GAP_on_disposal_price, 0)
+    UNITS: 1
+    DOCUMENT: The non-negative effect of the gap of local disposal volumes in/-decreases the price. 	
+Expected_available_disposal_volume[Region] = SMTH1(Volume_from_extraction+Landscape_adjustment, Time_to_adjust_expected_provision, Volume_from_extraction+Landscape_adjustment) {DELAY CONVERTER}
+    UNITS: m3/year
+    DOCUMENT: The expected provision of aggregates from the local production and imports from other regions are formed over a certain period of time, to reflect that knowledge about the production infrastructure and share of imports is not adjusted instantaneously. 
+Expected_Disposal[Region] = SMTH1(Disposable_material_including_imports/Settlement.Conversion_t_to_m3, time_to_form_expectation, Volume_from_extraction-("Initial_Indicator_net-growth_disposal_volume")) {DELAY CONVERTER}
+    UNITS: m3/year
+    DOCUMENT: The expected disposal of regional material flows only slowly changes, as adjusting the perceived regional metabolism is a long-term process. 
+Exports_of_construcion_waste_from_Region_B = Transport.Exports_of_excavation_material_in_Region_A
+    UNITS: t/year
+Exports_of_construction_waste_from_Region_A = Transport.Exports_of_excavation_material_in_Region_B
+    UNITS: t/year
+Fraction_of_safety_stock_disposal_volume = 0
+    UNITS: 1
+GAP_Disposal_volume[Region] = (Expected_available_disposal_volume+Desired_stock_adjustment)-Expected_Disposal
+    UNITS: m3/year
+    DOCUMENT: The GAP disposal volume is based on the the desired stock adjustment and all flows of the disposal volume. It is are more responsive and dynamic GAP than the long-gap disposal volume.  
+Gravel_exports_from_Region_B = Transport.Gravel_imports_in_Region_A
+    UNITS: t/year
+Gravel_import_in_Region_B = Transport.Gravel_imports_in_Region_B
+    UNITS: t/year
+Import_fraction_aggregates[Region_A] = PERCENT(Gravel_exports_from_Region_B/Settlement.Aggregate_demand)
+    UNITS: 1
+Import_fraction_aggregates[Region_B] = PERCENT(Gravel_import_in_Region_B/Settlement.Aggregate_demand)
+    UNITS: 1
+Import_fraction_disposal_services[Region_A] = PERCENT(Exports_of_construction_waste_from_Region_A/Local_disposable_material[Region_A])
+    UNITS: 1
+Import_fraction_disposal_services[Region_B] = PERCENT(Exports_of_construcion_waste_from_Region_B/Local_disposable_material[Region_B])
+    UNITS: 1
+Indicator_net_growth[Region] = Volume_from_extraction-Disposal
+    UNITS: m3/year
+    DOCUMENT: Calculates the change of disposal volume per year.
+Initial_accumulated_recycled_material = INIT(Annual_recycled_aggregate)*Initial_time
+    UNITS: t
+Initial_accumulated_recycling_potential = INIT(Annual_recycling_potential*Initial_time)
+    UNITS: t
+Initial_Disposal_volume[Region] = INIT(((Expected_Disposal*Desired_disposal_coverage))-Planned_gap_for_landscape_adjustments+Minimum_stock_disposal_volume)
+    UNITS: m3
+    DOCUMENT: initialized the disposal volume in equilibrium.
+"Initial_Indicator_net-growth_disposal_volume"[Region] = INIT(Volume_from_extraction-Local_disposable_material_after_recovery)
+    UNITS: m3/year
+Initial_time = TIME
+    UNITS: year
+Local_disposable_material[Region] = (Settlement.CDW+Settlement.Excavation_Material)
+    UNITS: t/year
+Local_disposable_material_after_imports[Region] = Disposable_material_including_imports/Settlement.Conversion_t_to_m3
+    UNITS: m3/year
+Local_disposable_material_after_recovery[Region] = Disposable_material_after_recovery/Settlement.Conversion_t_to_m3
+    UNITS: m3/year
+Local_material_demand = SUM(Local_disposable_material)+SUM(Settlement.Aggregate_demand)
+    UNITS: t/year
+Locally_treated_material[Region] = Disposable_material_including_imports+Market.Recycled_gravel_production+Extraction.Recovered_gravel_from_excavation_material+MAX(0, Landscape_adjustment*Settlement.Conversion_t_to_m3)
+    UNITS: t/year
+Long_term_GAP_disposal_volume[Region] = Desired_disposal_volume-Disposal_volume
+    UNITS: m3
+    DOCUMENT: The long term Gap between the desired disposal volume and the actual disposal volume.
+Material_demand_satisfied_by_imports = PERCENT(Total_material_transports/Local_material_demand)
+    UNITS: 1
+Maximal_Disposal[Region] = MAX(0, (Disposal_volume*Settlement.Conversion_t_to_m3)//Minimal_Disposal_time)
+    UNITS: t/year
+    DOCUMENT: The maximal annual disposal, based on the remaining volume and the time to identify the volume.The max function ensure the maximum disposal remains non-negative.
+Minimal_Disposal_time = 1
+    UNITS: year
+    DOCUMENT: The time to assess the remaining landfill volume is set to 0.25 year as no real-time data is collected and volumes are assessed on a rolling basis. 
+Minimum_stock_disposal_volume[Region] = ((Disposable_material_after_recovery*Fraction_of_safety_stock_disposal_volume)*Time_to_perceive_Disposal_GAP)/Settlement.Conversion_t_to_m3
+    UNITS: m3
+Planned_disposal_coverage[Region] = Desired_disposal_coverage*Step_planned_disposal_coverage
+    UNITS: year
+Planned_gap_for_landscape_adjustments[Region] = SMTH1(((Expected_Disposal*Planned_disposal_coverage)+Minimum_stock_disposal_volume)-Disposal_volume, Time_to_perceive_Disposal_GAP,-"Initial_Indicator_net-growth_disposal_volume"*Reference_time_to_grant_landscape_adjustment)
+    UNITS: m3
+    DOCUMENT: Based on the estimated disposable material and the desired coverage, and a minimum safety reserve, the gap between the desired disposal volume and the actual disposal volume is calculated. This planned gap is the basis for landscape adjustment.
+Policy:_Additional_planned_disposal_coverage[Region] = 0
+    UNITS: 1
+Policy:_Annual_increase_disposal_fee = 0
+    UNITS: CHF/t
+Policy:_Disposal_fee[Region] = IF Switch:_Policy_Disposal_fee = 1  THEN Policy:_Annual_increase_disposal_fee  ELSE 0
+    UNITS: CHF/t
+    DOCUMENT: The disposal fee increases by 1 [CHF/t/year] and is charged by the local municipality. 
+Ramp_disposal_fee[Region] = STEP(Policy:_Disposal_fee, Time_of_introduction_of_disposal_fee)
+    UNITS: CHF/t
+Reference_Disposal_price[Region] = (Transport.Transport_costs/2)+Disposal_fee+Basic_Disposal_price
+    UNITS: chf/t
+    DOCUMENT: The reference price constitutes of the basic disposal price in addition to the transport costs and disposal fee. Changes in transport costs or the disposal fee are passed on to the disposal price. 
+Reference_time_to_grant_landscape_adjustment = 5
+    UNITS: year
+    DOCUMENT: it is estimated that the process of granting volume adjustment takes around 5 years, as a measure of caution by spatial planners and associated bureaucratic hurdles. 
+Reference_time_to_prematurely_close_disposal_volume = 10
+    UNITS: year
+    DOCUMENT: it is estimated that the process of granting volume adjustment takes around 2 years, as a measure of caution by spatial planners and associated bureaucratic hurdles. 
+Sensitivity_GAP_on_disposal_price = 1
+    UNITS: 1
+Share_of_gap_excavation_material[Region] = SAFEDIV(GAP_Disposal_volume*Settlement.Conversion_t_to_m3, Disposable_material_after_recovery, -1)
+    UNITS: 1
+    DOCUMENT: The GAP in disposal volume is normalized with the expected disposal instead of the disposal, to avoid interference from short term fluctuations from inter-regional material flows. 
+Start_time_additional_disposal_coverage = 32
+    UNITS: year
+Step_planned_disposal_coverage[Region] = 1+STEP(Policy:_Additional_planned_disposal_coverage, Start_time_additional_disposal_coverage)
+    UNITS: 1
+Switch:_Policy_Disposal_fee = 1
+    UNITS: 1
+    DOCUMENT: activates the introduction of the fee [CHF/t] on disposal of excavation material and CDW. 
+Time_of_introduction_of_disposal_fee = 30
+    UNITS: year
+    DOCUMENT: The policy is introduced in year 12, simultaneously with the changes in the local material flows. 
+Time_to_adjust_disposal_price = 0.5
+    UNITS: year
+    DOCUMENT: Local disposal prices do not change immediately, but are adjusted every 6 month according to the availability of local disposal volume. 
+Time_to_adjust_expected_provision = 2
+    UNITS: year
+    DOCUMENT: The time to adjust expected provision of disposal volume is based on the provision of the past 2 years. This expresses the transition towards a different metabolism over the course of years and eliminates short-term fluctuations, which are irrelevant for long-term transitions. 
+Time_to_adjust_stock = 3
+    UNITS: year
+    DOCUMENT: The time to adjust the Gap in disposal volume is 1 year, as it is part of an annual assessment of the available disposal volumes in most cantons in Switzerland.
+time_to_form_expectation = 2
+    UNITS: year
+    DOCUMENT: The time to form expectations about disposal of material is set to 2 years, as the perception about the regional should be based on the regional metabolism and free of short term fluctuation due to im/-exports. 
+Time_to_pass_fee = 0.1
+    UNITS: year
+    DOCUMENT: The time to pass fee us used to simulate the information delay in the process of passing the fee to the consumer. It assumes that information about the introduction of the fee will take 1/12 year.
+Time_to_perceive_Disposal_GAP = 2
+    UNITS: year
+Total_material_transports = Exports_of_construction_waste_from_Region_A+Exports_of_construcion_waste_from_Region_B+Transport.Gravel_imports_in_Region_B+Transport.Gravel_imports_in_Region_A
+    UNITS: t/year
+
+Market:
+Experience_recycled_gravel[Region](t) = Experience_recycled_gravel[Region](t - dt) + (Increase_of_experience[Region] - Loss_of_experience[Region]) * dt {NON-NEGATIVE}
+    INIT Experience_recycled_gravel[Region] = Initial_regional_experience_recycled_gravel
+    UNITS: 1
+    DOCUMENT: The experience in using recycled gravel in Region A is measured in years. It assumes that in Region A, 10 years of experience resulted in an recycling quota of 100%. 
+Extraction_levy[Region](t) = Extraction_levy[Region](t - dt) + (Increase_of_levy[Region]) * dt {NON-NEGATIVE}
+    INIT Extraction_levy[Region] = Ramp_Levy
+    UNITS: CHF/t
+    DOCUMENT: Extraction levy is the accumulated value of the policy introduction. 
+Primary_gravel_price[Region](t) = Primary_gravel_price[Region](t - dt) + (primary_gravel_price_adjustment[Region]) * dt
+    INIT Primary_gravel_price[Region] = Reference_gravel_price
+    UNITS: chf/t
+Regional_aggregate_reserves[Region](t) = Regional_aggregate_reserves[Region](t - dt) + (Aggregate_production[Region] + Aggregate_Imports[Region] - Aggregate_sales[Region]) * dt
+    INIT Regional_aggregate_reserves[Region] = Initial_aggregate_market
+    UNITS: t
+    DOCUMENT: The local aggregate market receives material from the local production and imports. The demand for gravel is always covered by aggregate sales. 
+Aggregate_Imports[Region_A] = Transport.Gravel_imports_in_Region_A {UNIFLOW}
+    UNITS: t/Years
+Aggregate_Imports[Region_B] = Transport.Gravel_imports_in_Region_B {UNIFLOW}
+    UNITS: t/Years
+Aggregate_production[Region] = Primary_aggregate_production+Recycled_gravel_production {UNIFLOW}
+    UNITS: t/Years
+    DOCUMENT: The production of aggregates combines the production of primary and secondary material for the local aggregate market. 
+Aggregate_sales[Region] = MIN(Desired_sales, Maximal_aggregate_sales)
+    UNITS: t/Years
+    DOCUMENT: The aggregates sales always satisfy the demand, as long as there is sufficient material available. 
+Increase_of_experience[Region_A] = (Indicator_additional_costs_of_recycled_gravel/Time_to_gain_experience)+Lighthouse_experience_pulse[Region_A] {UNIFLOW}
+    UNITS: 1/year
+Increase_of_experience[Region_B] = (Indicator_additional_costs_of_recycled_gravel/Time_to_gain_experience) {UNIFLOW}
+    UNITS: 1/year
+Increase_of_levy[Region] = (Ramp_Levy-Extraction_levy)/Time_to_increase_levy {UNIFLOW}
+    UNITS: CHF/t/year
+    DOCUMENT: The increase of the levy is a smoothed version of the ramp, to account for the delay of policy introduction and local effect. 
+Loss_of_experience[Region] = Experience_recycled_gravel/Time_to_loose_institutionalized_knowledge {UNIFLOW}
+    UNITS: 1/year
+primary_gravel_price_adjustment[Region] = Transport.Fuel_price_adjustment+Increase_of_levy+Extraction.Adjustment_license_costs+((Expected_gravel_price-Primary_gravel_price)/Time_to_adjust_gravel_price)
+    UNITS: CHF/t/year
+Additional_costs_recycled_gravel[Region] = Indicator_additional_costs_of_recycled_gravel*Effect_of_experience_on_additional_costs*Reference_value_additional_costs
+    UNITS: CHF/t
+Attractiveness_of_recycled_gravel[Region] = SAFEDIV(1, (relative_costs_recycled_gravel^Sensitivity_relative_costs_on_relative_attractiveness))
+    UNITS: 1
+    DOCUMENT: Changes in the relative costs of recycled gravel result in changes of the attractiveness of recycled gravel. The attractiveness is a selected as the main driver of the desired market share.
+Delta_Aggregates = ROUND(SUM(Settlement.Aggregate_demand)-SUM(Aggregate_sales))
+    UNITS: t/Years
+Desired_aggregate_Reserves[Region] = Desired_coverage_aggregate_market*Expected_aggregate_demand
+    UNITS: t
+Desired_amount_of_recycled_CDW[Region] =  MIN(Desired_market_share_with_intervention*Settlement.Aggregate_demand, Local_recycable_CDW)
+    UNITS: t/year
+Desired_coverage_aggregate_market = 0.25
+    UNITS: year
+    DOCUMENT: It is assumed that the normal coverage for aggregate market reserves is 4 months (0.25 year).
+Desired_market_share_recycled_gravel[Region] = (Attractiveness_of_recycled_gravel^Sensitivity_desired_market_share_recycled_gravel)/((1-Reference_market_share_recycled_gravel)/Reference_market_share_recycled_gravel+Attractiveness_of_recycled_gravel^Sensitivity_desired_market_share_recycled_gravel)
+    UNITS: 1
+    DOCUMENT: The attractiveness of recycled gravel is multiplied with the reference market share, the remaining calculation initializes the equation in equilibrium.
+Desired_market_share_with_intervention[Region] = IF Switch:_Institutionalize_demand=1 AND TIME>Institutional_demand_start_time   THEN  Desired_market_share_recycled_gravel+(1-Desired_market_share_recycled_gravel)*Fraction_of_demand_by_public_actors ELSE Desired_market_share_recycled_gravel
+    UNITS: 1
+Desired_sales[Region_A] = MAX(0,  Local_gavel_demand[Region_A]+Transport.Gravel_imports_in_Region_B-Transport.Gravel_imports_in_Region_A)
+    UNITS: t/Years
+Desired_sales[Region_B] = MAX(0, Local_gavel_demand[Region_B]+Transport.Gravel_imports_in_Region_A-Transport.Gravel_imports_in_Region_B)
+    UNITS: t/Years
+Desired_stock_adjustment_aggregate_market[Region] = (GAP_aggregate_reserves/Time_to_adjust_gravel_market) {DELAY CONVERTER}
+    UNITS: t/Years
+    DOCUMENT: Compares the desired stock of aggregates with the actual stock over the time it takes to adjust the local market. 
+Disposable_CDW[Region] = Local_recycable_CDW-Recycled_gravel_production
+    UNITS: t/year
+    DOCUMENT: The share of CDW that is not recycled, is disposed.
+Effect_of_aggregate_gap_on_expected_gravel_price[Region] =  (1+Share_of_aggregate_gap)^Sensitivity_of_Gap_on_price
+    UNITS: 1
+    DOCUMENT: The effect on the price is 0, if there is no gap, and increases (decreases) the price if there is a negative (positive) gap. The if then else function avoids changes to the price based on minimal deviations and negative effect (price can not be negative).
+Effect_of_experience_on_additional_costs[Region_A] = 1/Indicator_experience_recycled_gravel^Sensitivity_of_experience_on_additional_costs
+    UNITS: 1
+    DOCUMENT: Assumes that experience with recycled gravel balances the additional costs for the uptake of recycled gravel, begin an essential feedback in the diffusion of knowledge and economies of scale. 
+Effect_of_experience_on_additional_costs[Region_B] =  1/Indicator_experience_recycled_gravel^Sensitivity_of_experience_on_additional_costs
+    UNITS: 1
+    DOCUMENT: Assumes that experience with recycled gravel balances the additional costs for the uptake of recycled gravel, begin an essential feedback in the diffusion of knowledge and economies of scale. 
+Expected_aggregate_demand[Region] = SMTH1(Desired_sales, Time_to_adjust_expected_aggregate_sales, Aggregate_production+Transport."Initial_net-imports") {DELAY CONVERTER}
+    UNITS: t/Years
+    DOCUMENT: The expected sales of aggregates are based on the aggregate sales of the past quarter.
+Expected_gravel_price[Region] = (Primary_gravel_price*Effect_of_aggregate_gap_on_expected_gravel_price)
+    UNITS: CHF/t
+    DOCUMENT: The effect of the aggregate gap and the regional license costs are the only endogenous dynamics that drive the expected gravel price. 
+Expected_provision_of_aggregates[Region] = SMTH1(Aggregate_production, Time_to_adjust_expected_provision, Transport."Initial_net-imports"+Aggregate_production) {DELAY CONVERTER}
+    UNITS: t/Years
+    DOCUMENT: The expected provision of aggregates from the local production and imports from other regions is formed over a certain period of time, to reflect that knowledge about the production and is not adjusted instantaneously. 
+Fraction_of_demand_by_public_actors = 0.3
+    UNITS: 1
+GAP_aggregate_reserves[Region] = (Desired_aggregate_Reserves)-Perceived_aggregate_reserves
+    UNITS: t
+    DOCUMENT: The desired stock of aggregates in the local market. 
+GAP_aggregates[Region] = ROUND((Expected_aggregate_demand+Desired_stock_adjustment_aggregate_market)-Expected_provision_of_aggregates)
+    UNITS: t/year
+    DOCUMENT: Compares the expected availability plus the desired adjustments to the stock of aggregates with the expected sales, calculating how much or little aggregate is available in the region.
+Indicator_additional_costs_of_recycled_gravel[Region] = EXP(Standard_sensitivity_of_market_share_on_costs*(Market_share_recycled_gravel-Reference_market_share_recycled_gravel))
+    UNITS: 1
+    DOCUMENT: Additional costs occur if the market share of recycled gravel increases relative to the overall gravel demand. A exponential function is used to describe the growth of additional costs, such as costs for certification of innovative application, training of professionals and marketing of products. 
+Indicator_experience_recycled_gravel[Region] = Experience_recycled_gravel/Reference_experience_recycled_gravel
+    UNITS: 1
+    DOCUMENT: The actual experience relative to the reference value return an indicator for the effect on additional costs. It assumes that with increasing experience, the additional costs increase. Since Region A is already at 100% recycling of CDW with 10 years of exprience, the indicator is 1. 
+Initial_aggregate_market[Region] = (Expected_aggregate_demand)*Desired_coverage_aggregate_market
+    UNITS: t
+    DOCUMENT: The initial aggregate market equals the expected aggregate sales and the desired coverage. 
+Initial_recycling_quota[Region] = (Local_recycable_CDW*Reference_initial_Recycling_quota)/Local_recycable_CDW
+    UNITS: 1
+Initial_reference_gravel_price = 22
+    UNITS: CHF/t
+Initial_regional_experience_recycled_gravel[Region] = 10
+    UNITS: 1
+Initiate_incumbent_policies = 0
+    UNITS: 1
+Innovation_factor = 4
+    UNITS: 1
+Innovation_period = 10
+    UNITS: year
+Institutional_demand_start_time = 22
+    UNITS: year
+Introduction_Levy[Region] = IF Switch_Policy:_Levy = 1  THEN Policy:_Annual_increase_extraction_levy  ELSE 0
+    UNITS: CHF/t
+    DOCUMENT: The levy increases by 1 [CHF/t/year] and is charged by the local municipality. 
+Lighthouse_experience_pulse[Region] = IF Policy:_Initiate_Lighthouse_projects=1 AND TIME>Start_time_lighthouse_projects THEN Lighthouse_projects*Policy:_Initiate_Lighthouse_projects ELSE 0
+    UNITS: 1/year
+Lighthouse_projects = MAX(0,  SINWAVE(Innovation_factor, Innovation_period))
+    UNITS: 1
+Local_gavel_demand[Region] = MAX(0, Settlement.Aggregate_demand)
+    UNITS: t/year
+    DOCUMENT: The actual aggregate demand is based on the local demand for material and exports to other regions. 
+Local_primary_gravel_demand[Region] = Settlement.Aggregate_demand-Recycled_gravel_production
+    UNITS: t/Years
+Local_recycable_CDW[Region] = Settlement.CDW*Settlement.Maximal_recyclable_fraction_CDW
+    UNITS: t/year
+Market_share_recycled_gravel[Region] = MIN(100, (Recycled_gravel_production)//Settlement.Aggregate_demand)
+    UNITS: 1
+    DOCUMENT: The actual market share, relative to the total gravel demand in region A. 
+Maximal_aggregate_sales[Region] = MAX(0, Regional_aggregate_reserves/Minimum_time_to_sell_gravel)
+    UNITS: t/year
+    DOCUMENT: Maximum gravel sales are calculated to ensure that the stock does not take a non-negative value. 
+Minimum_time_to_sell_gravel = 0.02
+    UNITS: year
+    DOCUMENT: Within 1 week, the remaining gravel reserves can be sold. 
+Perceived_aggregate_reserves[Region] = SMTH1(Regional_aggregate_reserves, Time_to_perceive_aggragate_market, Regional_aggregate_reserves)
+    UNITS: t
+Policy:_Annual_increase_extraction_levy = 0
+    UNITS: CHF/t
+Policy:_Initiate_Lighthouse_projects = 0
+    UNITS: 1
+Primary_aggregate_production[Region] = Extraction.Gravel_extraction+Extraction.Recovered_gravel_from_excavation_material
+    UNITS: t/Years
+Ramp_Levy[Region] = STEP(Introduction_Levy, Time_of_introduction_of_levy)
+    UNITS: CHF/t
+    DOCUMENT: The ramp is used to derive the value of the policy over time. 
+Recycled_aggregate_demand_by_public_actors[Region_A] = IF TIME >Institutional_demand_start_time THEN Settlement.Aggregate_demand*Fraction_of_demand_by_public_actors ELSE 0
+    UNITS: t/year
+Recycled_aggregate_demand_by_public_actors[Region_B] = 0
+    UNITS: t/year
+Recycled_gravel_price = SMTH1((Transport.Transport_costs), Time_to_adjust_recycled_gravel_price, (Transport.Transport_costs))
+    UNITS: CHF/t
+    DOCUMENT: Price for recycled gravel covers the transport costs and is excluding profit margins. 
+Recycled_gravel_production[Region] = MIN(Local_recycable_CDW, SMTH1(Desired_amount_of_recycled_CDW,  Time_to_adjust_recycled_gravel_sales,  Settlement.Aggregate_demand*Reference_market_share_recycled_gravel)) {DELAY CONVERTER}
+    UNITS: t/year
+    DOCUMENT: The actual sales of recycled CDW are smoothed over time, as setting up distribution channels is a sluggish process and lack considerably behind the desired sales of recycled material. 
+Recycling_quota_CDW[Region] = PERCENT(Recycled_gravel_production//Local_recycable_CDW)
+    UNITS: 1
+    DOCUMENT: The percentage of recycled gravel from CDW.
+Reference_experience_recycled_gravel[Region] = 10
+    UNITS: 1
+    DOCUMENT: The experience in urban areas with recycled gravel is assumed to be 10 years.
+Reference_gravel_price[Region] = Initial_reference_gravel_price+Regional_extraction_costs+(Transport.Transport_costs/2)
+    UNITS: CHF/t
+    DOCUMENT: The regional extraction costs and the transport costs are added to the reference price, resulting in a dynamic reference price, subject to cost changes. 
+Reference_initial_Recycling_quota[Region] = 0.2
+    UNITS: 1
+Reference_market_share_recycled_gravel[Region] = ((Initial_recycling_quota*Local_recycable_CDW)/Settlement.Aggregate_demand)
+    UNITS: 1
+    DOCUMENT: The initial reference market share assumes that (I) 100% of CDW is recycled in Region A and (II) that the market share is relative to the total gravel demand of Region A. 
+Reference_value_additional_costs[Region] = INIT(Reference_gravel_price-Transport.Transport_costs)
+    UNITS: CHF/t
+    DOCUMENT: The reference value of additional costs adds up with the recycled gravel price to the price of primary gravel, hence initializing the model equilibrium at a recycling quot of 100%.
+Regional_extraction_costs[Region] = MAX(Extraction.Regional_license_costs, Extraction_levy)
+    UNITS: CHF/t
+    DOCUMENT: The central extraction levy and the local license costs form the part of the costs that are specific to the region. 
+relative_costs_recycled_gravel[Region] = IF Switch_disposal_fee_CDW=1 THEN SAFEDIV((Additional_costs_recycled_gravel+Recycled_gravel_price), (Primary_gravel_price+Landfill.Disposal_fee)) ELSE SAFEDIV((Additional_costs_recycled_gravel+Recycled_gravel_price), Primary_gravel_price)
+    UNITS: 1
+    DOCUMENT: The price for recycled gravel plus additional costs for the usage of recycled gravel , relative to the price of primary gravel, is used to calculate the attractiveness. If the relative costs of recycled gravel decrease it becomes more attractive. SAFEDIV ensure smooth calculation even if the gravel price drops to 0 
+Sensitivity_desired_market_share_recycled_gravel = 2
+    UNITS: 1
+    DOCUMENT: The desired market share reacts very sensitive to change on the attractiveness It assumes that once sufficient experience is collected in the usage of recycling material, barriers to adoption become less significant. 
+Sensitivity_of_experience_on_additional_costs = 0.7
+    UNITS: 1
+    DOCUMENT: The sensitivity of experience on costs is low, as region A already operates at 100 % recycling and potential for further sales is limited. 
+Sensitivity_of_Gap_on_price = 1
+    UNITS: 1
+Sensitivity_relative_costs_on_relative_attractiveness = 1
+    UNITS: 1
+Share_of_aggregate_gap[Region] = (GAP_aggregates/Expected_aggregate_demand)
+    UNITS: 1
+    DOCUMENT: By comparing the Gap to the expected sales, the share of provision is deducted.	
+Standard_sensitivity_of_market_share_on_costs = 1.5
+    UNITS: 1
+Start_time_lighthouse_projects = 30
+    UNITS: year
+Switch_disposal_fee_CDW = 0
+    UNITS: 1
+Switch_Policy:_Levy = 1
+    UNITS: 1
+    DOCUMENT: activates the introduction of the levy [CHF/t] on primary resource extraction. 
+Switch:_Institutionalize_demand[Region_A] = IF Initiate_incumbent_policies=1 THEN 1 ELSE 0
+    UNITS: 1
+Switch:_Institutionalize_demand[Region_B] = 0
+    UNITS: 1
+Time_of_introduction_of_levy[Region] = 30
+    UNITS: year
+    DOCUMENT: The policy is introduced in year 12, simultaneously with the changes in the local material flows. 
+Time_to_adjust_expected_aggregate_sales = 2
+    UNITS: year
+    DOCUMENT: It is assumed that the expected sales of aggregates fluctuate, and hence the expectations are formed based on the aggregate sales of the past 2 years.
+Time_to_adjust_expected_provision = 2
+    UNITS: year
+    DOCUMENT: The time to adjust expected provision of aggregates is based on the provision of the past 2 years. This expresses the transition towards a different metabolism over the course of years and eliminates short-term fluctuations, which are irrelevant for long-term transitions. 	
+Time_to_adjust_gravel_market = 2
+    UNITS: year
+    DOCUMENT: It is assumed that it takes 6 months to assess the strategic gap in between desired and actual local aggregates.
+Time_to_adjust_gravel_price = 0.5
+    UNITS: year
+    DOCUMENT: It is assumed that it takes 6 month to adjust the current gravel prices based on expectations. 
+Time_to_adjust_recycled_gravel_price = 0.5
+    UNITS: year
+Time_to_adjust_recycled_gravel_sales = 3
+    UNITS: year
+    DOCUMENT: The time constant of 3 years reflect the lengthy process of introducing recycled products into a ponderous industry. 
+Time_to_gain_experience = 1
+    UNITS: year
+Time_to_increase_levy = 1/12
+    UNITS: year
+    DOCUMENT: The time to pass levy us used to simulate the information delay in the process of passing the levy to the consumer. It assumes that information about the introduction of the levy will take 1/12 year.
+Time_to_loose_institutionalized_knowledge = 10
+    UNITS: year
+Time_to_perceive_aggragate_market = 0.03
+    UNITS: year
+
+Profitability:
+Average_costs_per_unit_of_extraction_and_disposal[Region] = SAFEDIV(Total_regional_costs, Market.Primary_aggregate_production, unit_costs_for_extraction_and_disposal)
+    UNITS: CHF/t
+    DOCUMENT: The total costs divided by the the total production of primary gravel result in the average costs per unit of primary gravel. 
+average_transport_costs = (Transport.Transport_costs_Gravel+Transport.Transport_costs_excavation_material)/2
+    UNITS: chf/t
+    DOCUMENT: the average costs for transports of gravel and excavation material
+"Inter-regional_profitability"[Region] = SMTH1(MIN(Profitability_gravel_exports, Profitability_excavation_material_exports), Time_to_perceive_interregional_profitability, MIN(Profitability_gravel_exports, Profitability_excavation_material_exports))
+    UNITS: 1
+    DOCUMENT: If either gravel or excavation material is im/- or exported, the more profitable activity influences the total profitability. If there are no im/-exports, the regional profitability drives the perceived profitability. This assumes that regions might develop into suppliers for the other regions.
+Profitability_excavation_material_exports[Region_A] = (Landfill.Disposal_price[Region_B]+Market.Primary_gravel_price[Region_A]-Transport.Transport_costs_excavation_material)/Average_costs_per_unit_of_extraction_and_disposal[Region_A]
+    UNITS: 1
+    DOCUMENT: Excavation mat exports from Region A to B: this is the profitability for a company in region B to produce an additional unit of gravel (for sale in the home region) and fill the gravel quarry with excavation material delivered from region A. The unit revenue of this business model is given by Disposal price A + Gravel Price B – additional transportation costs; the production cost is given by the average cost in region B per unit of gravel. vice versa for exports from region B to A.
+Profitability_excavation_material_exports[Region_B] = (Landfill.Disposal_price[Region_A]+Market.Primary_gravel_price[Region_B]-Transport.Transport_costs_excavation_material)/Average_costs_per_unit_of_extraction_and_disposal[Region_B]
+    UNITS: 1
+    DOCUMENT: Excavation mat exports from Region A to B: this is the profitability for a company in region B to produce an additional unit of gravel (for sale in the home region) and fill the gravel quarry with excavation material delivered from region A. The unit revenue of this business model is given by Disposal price A + Gravel Price B – additional transportation costs; the production cost is given by the average cost in region B per unit of gravel. vice versa for exports from region B to A.
+Profitability_gravel_exports[Region_A] = (Market.Primary_gravel_price[Region_B]+MAX(Landfill.Disposal_price)-Transport.Transport_costs_Gravel)/Average_costs_per_unit_of_extraction_and_disposal[Region_A]
+    UNITS: 1
+    DOCUMENT: This is the profitability for a company in region A to produce an additional unit of gravel (for sale in the home region) and fill the gravel quarry with excavation material delivered from region B. The unit revenue of this business model is given by Disposal price B + Gravel Price A – additional transportation costs; the production cost is given by the average cost in region A per unit of gravel. vice versa for exports from region B to A.
+Profitability_gravel_exports[Region_B] = ((Market.Primary_gravel_price[Region_A]+MAX(Landfill.Disposal_price))-Transport.Transport_costs_Gravel)/Average_costs_per_unit_of_extraction_and_disposal[Region_B]
+    UNITS: 1
+    DOCUMENT: This is the profitability for a company in region A to produce an additional unit of gravel (for sale in the home region) and fill the gravel quarry with excavation material delivered from region B. The unit revenue of this business model is given by Disposal price B + Gravel Price A – additional transportation costs; the production cost is given by the average cost in region A per unit of gravel. vice versa for exports from region B to A.
+Regional_profitability[Region] = IF Switch_Profitability=1 THEN MAX(0, SMTH1(SAFEDIV(Total_Regional_turnover, Total_regional_costs), Time_to_perceive_regional_profitability,INIT( Total_Regional_turnover/Total_regional_costs))) ELSE 1
+    UNITS: 1
+    DOCUMENT: The total profitability for both business models in the region, considering the total costs and turnover. 
+Relative_profitability_of_extraction_against_recovery[Region] = SAFEDIV(unit_profitability_extraction_and_disposal, unit_profitability_for_recovery_from_excavation_material)
+    UNITS: 1
+    DOCUMENT: Determines the relative profitability of the dominant industry practice to the alternative of recovering gravel. 
+Switch_Profitability = 1
+    UNITS: 1
+Time_to_perceive_interregional_profitability = 0.01
+    UNITS: Year
+Time_to_perceive_regional_profitability = 0.2
+    UNITS: year
+Total_costs_for_extraction_and_disposal[Region] = unit_costs_for_extraction_and_disposal*Extraction.Gravel_extraction
+    UNITS: Swiss Francs/Years
+    DOCUMENT: The total costs are based on the costs per unit and the regional gravel extraction. It assumes the cost calculation is based on the annual extraction rate of gravel (i.e. the inflow in the gravel market) .
+Total_costs_for_recovery_from_excavation_material[Region] = unit_costs_for_recovery_from_excavation_material*Extraction.Recovered_gravel_from_excavation_material
+    UNITS: Swiss Francs/Years
+    DOCUMENT: The total costs are based on the costs per unit and the regional gravel recovered from excavation material. It assumes the cost calculation is based on the annual recovery rate of gravel (i.e. the inflow of disposal volume).
+Total_regional_costs[Region] = Total_costs_for_recovery_from_excavation_material+Total_costs_for_extraction_and_disposal
+    UNITS: Swiss Francs/Years
+Total_Regional_turnover[Region] = Total_turnover_for_extraction_and_disposal+Total_turnover_recovery_from_excavation_material
+    UNITS: Swiss Francs/Years
+    DOCUMENT: As both business models tend to be found to a varying degree within most companies. the total turnover for both business models is calculated. 	
+Total_turnover_for_extraction_and_disposal[Region] = Unit_turnover_for_extraction_and_disposal*Extraction.Gravel_extraction
+    UNITS: Swiss Francs/Years
+    DOCUMENT: The total turnover is based on the price per unit and the regionally extracted gravel. It assumes that one ton of gravel recovery from excavation material generates one ton of disposal volume. Hence the revenue is based on the volume generated by gravel extraction multiplied with the price for the disposal violume, and the price for gravel with the actual extracted gravel. 
+Total_turnover_recovery_from_excavation_material[Region] = Extraction.Recovered_gravel_from_excavation_material*Unit_turnover_recovery_from_excavation_material
+    UNITS: Swiss Francs/Years
+    DOCUMENT: The total turnover is based on the price per unit and the regional gravel recovered from excavation material. It assumes that one ton of gravel recovery from excavation material saves one ton of disposal volume. Hence the revenue is based on the volume saved by gravel extraction multiplied with the price for the disposal violume, and the price for gravel with the actual recovered gravel. 
+unit_costs_for_extraction_and_disposal[Region] = Various_costs_for_extraction_and_disposal+Landfill.Disposal_fee+Market.Regional_extraction_costs+average_transport_costs
+    UNITS: CHF/t
+    DOCUMENT: The cost for the extraction of one ton of gravel and the consequent disposal of one ton of excavation material. Both policies, the extraction levy and the disposal fee, are attributed to the unit costs. 
+unit_costs_for_recovery_from_excavation_material[Region] = Various_costs_for_recovery_from_excavation_material+average_transport_costs
+    UNITS: CHF/t
+    DOCUMENT: The cost for one ton of recovered gravel from excavation material consists of the transport costs and various costs for recovery. 
+unit_profitability_extraction_and_disposal[Region] = Unit_turnover_for_extraction_and_disposal/unit_costs_for_extraction_and_disposal
+    UNITS: 1
+    DOCUMENT: The unit profitability for extraction and disposal is initially one, and changes according the either changes in the price or cost structure of the region 	
+unit_profitability_for_recovery_from_excavation_material[Region] = Unit_turnover_recovery_from_excavation_material/unit_costs_for_recovery_from_excavation_material
+    UNITS: 1
+    DOCUMENT: The unit profitability for recovery from excavation material is initially one, and changes according the either changes in the price or cost structure of the region 
+Unit_turnover_for_extraction_and_disposal[Region] = Landfill.Disposal_price+Market.Primary_gravel_price
+    UNITS: chf/t
+Unit_turnover_recovery_from_excavation_material[Region] = Landfill.Disposal_price+Market.Primary_gravel_price
+    UNITS: chf/t
+Various_costs_for_extraction_and_disposal[Region] = INIT(Market.Primary_gravel_price+Landfill.Disposal_price-Market.Regional_extraction_costs-average_transport_costs)
+    UNITS: CHF/t
+    DOCUMENT: Various costs for extraction and disposal cover all costs apart from transport costs, and include the profit margin of the company. 
+Various_costs_for_recovery_from_excavation_material[Region] = INIT(Market.Primary_gravel_price+Landfill.Disposal_price-average_transport_costs)
+    UNITS: CHF/t
+    DOCUMENT: Various costs for recovery from excavation material cover all costs apart from transport costs, and include the profit margin of the company. 
+
+Settlement:
+Developed_area[Region](t) = Developed_area[Region](t - dt) + (Replacement[Region] + Greenfield_construction[Region] - Deconstruction[Region]) * dt {NON-NEGATIVE}
+    INIT Developed_area[Region] = Initial_developed_area
+    UNITS: ha
+    DOCUMENT: The area of Region A that is part of the building stock and provides residency to the population. 
+Total_area[Region](t) = Total_area[Region](t - dt) + ( - building_land_release[Region]) * dt
+    INIT Total_area[Region] = Initial_total_area
+    UNITS: ha
+Undeveloped_area[Region](t) = Undeveloped_area[Region](t - dt) + (building_land_release[Region] - Greenfield_construction[Region]) * dt
+    INIT Undeveloped_area[Region] = Initial_undeveloped_area
+    UNITS: ha
+    DOCUMENT: The area of Region A for greenfield construction. It is assumed that regardless of population growth, that area will be built on.
+building_land_release[Region] = 0
+    UNITS: ha/year
+Deconstruction[Region] = Developed_area*Deconstruction_rate {UNIFLOW}
+    UNITS: ha/year
+Greenfield_construction[Region] = Undeveloped_area/Reference_construction_time {UNIFLOW}
+    UNITS: ha/year
+Replacement[Region] = Deconstruction {UNIFLOW}
+    UNITS: ha/year
+    DOCUMENT: Assumes that the deconstructed area in Region A is replaced at an equal rate. 
+"%_change_of_Aggregate_demand_Period_2" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_Aggregate_demand_Period_3" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_CDW_Period_1"[Region_A] = IF Greenfield_development=1 THEN 10 ELSE IF Urban_renewal=1 THEN 40 ELSE IF Urban_densification=1  THEN 30 ELSE IF Reduction=1  THEN 50 ELSE Region_A:_%_change_of_CDW
+    UNITS: 1
+    DOCUMENT: Change of CDW in Region A in %, relative to equilibrium. 
+"%_change_of_CDW_Period_1"[Region_B] = IF Greenfield_development=1 THEN 10 ELSE IF Urban_renewal=1 THEN 40 ELSE IF Urban_densification=1  THEN 30 ELSE IF Reduction=1  THEN 50 ELSE Region_B:_%_change_of_CDW
+    UNITS: 1
+    DOCUMENT: Change of CDW in Region A in %, relative to equilibrium. 
+"%_change_of_CDW_Period_2" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_CDW_Period_3" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_excavation_material_Period_1"[Region_A] = IF Greenfield_development=1 THEN 2 ELSE IF Urban_renewal=1 THEN 15 ELSE IF Urban_densification=1  THEN -30 ELSE IF Reduction=1  THEN -70 ELSE Region_A:_%_change_of_excavation_material
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_excavation_material_Period_1"[Region_B] = IF Greenfield_development=1 THEN 2 ELSE IF Urban_renewal=1 THEN 30 ELSE IF Urban_densification=1  THEN -60 ELSE IF Reduction=1  THEN -70 ELSE Region_B:_%_change_of_excavation_material
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_excavation_material_Period_2" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_excavation_material_Period_3" = 0
+    UNITS: 1
+    DOCUMENT: Change of excavation Material in Region A in %, relative to equilibrium. 
+"%_change_of_gravel_Period_1"[Region_A] = IF Greenfield_development=1 THEN 30 ELSE IF Urban_renewal=1 THEN 30 ELSE IF Urban_densification=1  THEN -30 ELSE IF Reduction=1  THEN -70 ELSE Region_A:_%_change_of_gravel
+    UNITS: 1
+    DOCUMENT: Change of gravel demand in Region A in %, relative to equilibrium. 
+"%_change_of_gravel_Period_1"[Region_B] = IF Greenfield_development=1 THEN 30.6079 ELSE IF Urban_renewal=1 THEN 10 ELSE IF Urban_densification=1  THEN -30 ELSE IF Reduction=1  THEN -70 ELSE Region_B:_%_change_of_gravel
+    UNITS: 1
+    DOCUMENT: Change of gravel demand in Region A in %, relative to equilibrium. 
+"2_Period_Excavation"[Region] = IF Switch:_Period_2=1 THEN 1+(RAMP(Period_2:_Change_of_excavation/Duration_ramp_period_2,Start_time_period_2, Start_time_period_2+Duration_ramp_period_2)) ELSE 1
+    UNITS: 1
+"2_Period_Ramp_CDW"[Region] = IF Switch:_Period_2=1 THEN 1+(RAMP(Period_2:_Change_of_CDW/Duration_ramp_period_2, Start_time_period_2, Start_time_period_2+Duration_ramp_period_2)) ELSE 1
+    UNITS: 1
+"2_Period_Ramp_Gravel"[Region] = IF Switch:_Period_2=1 THEN 1+(RAMP(Period_2:_Change_of_Aggregate_Demand/Duration_ramp_period_2,Start_time_period_2, Start_time_period_2+Duration_ramp_period_2)) ELSE 1
+    UNITS: 1
+"3_Period_Excavation"[Region] = IF Switch:_Period_3=1 THEN 1+(RAMP(Change_Period_3_excavation_material/Duration_ramp_period_3,Start_time_period_3, Start_time_period_3+Duration_ramp_period_3))-STEP(Change_Period_3_excavation_material,Start_time_period_3+Duration_ramp_period_3+Duration_time_period_3) ELSE 1
+    UNITS: 1
+"3_Period_Ramp_CDW"[Region] = IF Switch:_Period_3=1 THEN 1+(RAMP(Change_Period_3_CDW/Duration_ramp_period_3,Start_time_period_3, Start_time_period_3+Duration_ramp_period_3))-STEP(Change_Period_3_CDW,Start_time_period_3+Duration_ramp_period_3+Duration_time_period_3) ELSE 1
+    UNITS: 1
+"3_Period_Ramp_Gravel"[Region] = IF Switch:_Period_3=1 THEN 1+(RAMP(Change_Period_3_Aggregate_demand/Duration_ramp_period_3,Start_time_period_3, Start_time_period_3+Duration_ramp_period_3))-STEP(Change_Period_3_Aggregate_demand,Start_time_period_3+Duration_ramp_period_3+Duration_time_period_3) ELSE 1
+    UNITS: 1
+Aggregate_demand[Region_A] = (Reference_value_gravel_demand*Conversion_t_to_m3)*Change_aggregate_demand
+    UNITS: t/year
+    DOCUMENT: The gravel demand in Region A, as a result of construction activity. 
+Aggregate_demand[Region_B] = (Reference_value_gravel_demand*Conversion_t_to_m3)
+    UNITS: t/year
+    DOCUMENT: The gravel demand in Region A, as a result of construction activity. 
+CDW[Region_A] = (Reference_value_CDW[Region_A]*Conversion_t_to_m3)*Change_CDW[Region_A]
+    UNITS: t/year
+    DOCUMENT: The amount of CDW in Region A, as a result of construction activity. 
+CDW[Region_B] = (Reference_value_CDW[Region_B]*Conversion_t_to_m3)
+    UNITS: t/year
+    DOCUMENT: The amount of CDW in Region A, as a result of construction activity. 
+CDW_Inrease = 0
+    UNITS: 1
+CE_Scenario_Aggregate_demand[Region] = Scenario_KAR:_Aggregate_demand*(1+Change_in_aggregate_demand)
+    UNITS: m3/year
+CE_Scenario_CDW[Region] = Scenario_KAR_CDW*(1+(CDW_Inrease))
+    UNITS: m3/year
+CE_Scenario_Excavation_material[Region] = Scenario_KAR:_Excavation*(1+(Excavation))
+    UNITS: m3/year
+Change_aggregate_demand[Region] = Period_1_gravel*"2_Period_Ramp_Gravel"*"3_Period_Ramp_Gravel"
+    UNITS: 1
+Change_CDW[Region] = Period_1_CDW*"3_Period_Ramp_CDW"*"2_Period_Ramp_CDW"
+    UNITS: 1
+Change_excavation_material[Region] = Period_1_excavation_material*"2_Period_Excavation"*"3_Period_Excavation"
+    UNITS: 1
+Change_in_aggregate_demand = 0
+    UNITS: 1
+Change_Period_3_Aggregate_demand[Region] = IF Switch:_Circular_flows_Region_A=1 THEN Input_Scenario_3_Aggregate_demand ELSE "%_change_of_Aggregate_demand_Period_3"
+    UNITS: 1
+Change_Period_3_CDW[Region] = IF Switch:_Circular_flows_Region_A=1 THEN Input_Scenario_3_CDW[Region_A] ELSE "%_change_of_CDW_Period_3"
+    UNITS: 1
+Change_Period_3_excavation_material[Region] = IF Switch:_Circular_flows_Region_A=1 THEN Input_Scenario_3_Excavation[Region_A] ELSE "%_change_of_excavation_material_Period_3"
+    UNITS: 1
+Conversion_t_to_m3 = 1.6
+    UNITS: t/m3
+Deconstruction_rate = 0.02
+    UNITS: 1/year
+    DOCUMENT: A constant rate at which the developed area is deconstructed. 
+"Delta_material_net-flow"[Region] = (Aggregate_demand-(CDW+Excavation_Material))/Conversion_t_to_m3
+    UNITS: m3/year
+    DOCUMENT: The delta of material flows indicates whether the available disposal volume is increasing or shrinking (assuming 100 % recycling of CDW) . 
+Duration_ramp_period_1 = 5
+    UNITS: year
+Duration_ramp_period_2 = 5
+    UNITS: year
+Duration_ramp_period_3 = 63
+    UNITS: year
+Duration_time_Period_1 = 15
+    UNITS: year
+Duration_time_Period_2 = 15
+    UNITS: year
+Duration_time_period_3 = 20
+    UNITS: year
+End_time_period_1 = Starting_time_Period_1+Duration_time_Period_1
+    UNITS: year
+End_time_period_2 = Start_time_period_2+Duration_ramp_period_2+Duration_time_Period_2
+    UNITS: year
+Excavation = 0
+    UNITS: 1
+Excavation_Material[Region_A] = (Reference_Excavation_Material*Conversion_t_to_m3)*(Change_excavation_material)
+    UNITS: t/year
+    DOCUMENT: The amount of excavation material in Region A, as a result of construction activity. 
+Excavation_Material[Region_B] = ((Reference_Excavation_Material[Region_B]*Conversion_t_to_m3))
+    UNITS: t/year
+    DOCUMENT: The amount of excavation material in Region A, as a result of construction activity. 
+Fraction_of_developed_area[Region_A] = 0.3
+    UNITS: 1
+Fraction_of_developed_area[Region_B] = 0.1
+    UNITS: 1
+Fraction_of_undeveloped[Region] = 1-Fraction_of_developed_area
+    UNITS: 1
+Gravel_content_excavation_material = 0.3
+    UNITS: 1
+    DOCUMENT: Gravel content in clean excavation material is assumed to be 30 %. This means that by recycling excavation material, 30 % of recycled material is primary gravel. Both regions are attributed the same gravel content ration. 	
+Greenfield_development[Region_A] = Switch_Region_A_Greenfield_development
+    UNITS: 1
+Greenfield_development[Region_B] = Switch_Region_B_Greenfield_development
+    UNITS: 1
+Initial_Delta[Region] = (Reference_value_gravel_demand-Reference_value_CDW)
+    UNITS: m3/year
+Initial_developed_area[Region] = Initial_undeveloped_area*Fraction_of_developed_area
+    UNITS: ha
+    DOCUMENT: The initial floor space in Region A equals the inital demand for floor space 
+Initial_settlement_pressure[Region] = INIT(Settlement_pressure)
+    UNITS: 1
+Initial_total_area = 8651
+    UNITS: ha
+Initial_undeveloped_area[Region] = Initial_total_area* Fraction_of_undeveloped
+    UNITS: ha
+    DOCUMENT: The initial undeveloped are in Region A equals the intial floor space minus minus the fraction of undeveloped area. 
+Initiate_urban_transition = 0
+    UNITS: 1
+Input_Scenario_2_Aggregate_demand[Region] = -1+(Scenario_KAR:_Aggregate_demand/((1+Period_1_change_Aggregates)*Reference_value_gravel_demand))
+    UNITS: 1
+Input_Scenario_2_CDW[Region] = -1+(Scenario_KAR_CDW/((1+Period_1_CDW_change)*Reference_value_CDW))
+    UNITS: 1
+Input_Scenario_2_Excavation[Region] = -1+(Scenario_KAR:_Excavation/((1+Period_1_change_Excavation_Material)*Reference_Excavation_Material))
+    UNITS: 1
+Input_Scenario_3_Aggregate_demand[Region] = IF Switch:_Circular_flows_Region_A=1 THEN -.25 ELSE  -1+(CE_Scenario_Aggregate_demand/(Scenario_KAR:_Aggregate_demand))
+    UNITS: 1
+Input_Scenario_3_CDW[Region] = IF Switch:_Circular_flows_Region_A=1 THEN 1.6 ELSE  -1+(CE_Scenario_CDW/(Scenario_KAR_CDW))
+    UNITS: 1
+Input_Scenario_3_Excavation[Region] = IF Switch:_Circular_flows_Region_A=1 THEN -.78 ELSE  -1+(CE_Scenario_Excavation_material/(Scenario_KAR:_Excavation))
+    UNITS: 1
+Max_recoverable_CDW[Region] = (CDW*Maximal_recyclable_fraction_CDW)/Conversion_t_to_m3
+    UNITS: m3/year
+Maximal_recoverable_excavation_material[Region] = (Excavation_Material*Gravel_content_excavation_material)/Conversion_t_to_m3
+    UNITS: m3/year
+Maximal_recyclable_fraction_CDW = 1
+    UNITS: 1
+Maximum_supply_secondary_aggregates[Region] = Maximal_recoverable_excavation_material+Max_recoverable_CDW
+    UNITS: m3/year
+Normalized_Settlement_pressure[Region] = (Settlement_pressure/Initial_settlement_pressure)^Sensitivity_of_settlement_pressure
+    UNITS: 1
+    DOCUMENT: The Settlement pressure is used to indicate the population density relative to available space within the region. If more new land for construction is made available, the settlement pressure increases. 
+Period_1_CDW[Region] = 1+(RAMP(Period_1_CDW_change/Duration_ramp_period_1,Starting_time_Period_1, Starting_time_Period_1+Duration_ramp_period_1))
+    UNITS: 1
+Period_1_CDW_change[Region] = "%_change_of_CDW_Period_1"/100
+    UNITS: 1
+Period_1_change_Aggregates[Region] = "%_change_of_gravel_Period_1"/100
+    UNITS: 1
+Period_1_change_Excavation_Material[Region] = "%_change_of_excavation_material_Period_1"/100
+    UNITS: 1
+    DOCUMENT: The ramp height is divided by 100 to provide input for the ramp. 
+Period_1_excavation_material[Region] = 1+(RAMP(Period_1_change_Excavation_Material/Duration_ramp_period_1,Starting_time_Period_1, Starting_time_Period_1+Duration_ramp_period_1))
+    UNITS: 1
+Period_1_gravel[Region] = 1+(RAMP(Period_1_change_Aggregates/Duration_ramp_period_1,Starting_time_Period_1, Starting_time_Period_1+Duration_ramp_period_1))
+    UNITS: 1
+Period_2:_Change_of_Aggregate_Demand[Region_A] = IF "SWITCH_KAR_MODEL_(nur_für_section_2)_1"=1 THEN Input_Scenario_2_Aggregate_demand[Region_A] ELSE "%_change_of_Aggregate_demand_Period_2"
+    UNITS: 1
+Period_2:_Change_of_Aggregate_Demand[Region_B] = 0
+    UNITS: 1
+Period_2:_Change_of_CDW[Region_A] = IF "SWITCH_KAR_MODEL_(nur_für_section_2)_1"=1 THEN Input_Scenario_2_CDW[Region_A] ELSE "%_change_of_CDW_Period_2"
+    UNITS: 1
+Period_2:_Change_of_CDW[Region_B] = 0
+    UNITS: 1
+Period_2:_Change_of_excavation[Region_A] = IF "SWITCH_KAR_MODEL_(nur_für_section_2)_1"=1 THEN Input_Scenario_2_Excavation[Region_A] ELSE "%_change_of_excavation_material_Period_2"
+    UNITS: 1
+Period_2:_Change_of_excavation[Region_B] = 0
+    UNITS: 1
+Reduction[Region_A] = Switch_Region_A_Reduction
+    UNITS: 1
+Reduction[Region_B] = Switch_Region_B_Reduction
+    UNITS: 1
+Reference_construction_time[Region_A] = 20
+    UNITS: year
+Reference_construction_time[Region_B] = 50
+    UNITS: year
+Reference_Excavation_Material[Region] = Initial_Delta
+    UNITS: m3/year
+Reference_value_CDW[Region] = 500000
+    UNITS: m3/year
+Reference_value_gravel_demand[Region] = 3500000
+    UNITS: m3/year
+Region_A:_%_change_of_CDW = 0
+    UNITS: 1
+Region_A:_%_change_of_excavation_material = 0
+    UNITS: 1
+Region_A:_%_change_of_gravel = 0
+    UNITS: 1
+Region_B:_%_change_of_CDW = 0
+    UNITS: 1
+Region_B:_%_change_of_excavation_material = 0
+    UNITS: 1
+Region_B:_%_change_of_gravel = 0
+    UNITS: 1
+relative_developed_area[Region] = (Developed_area/(Undeveloped_area+Total_area))
+    UNITS: 1
+    DOCUMENT: Assumes that developed area is directly transformed into floor space. 
+Scenario_KAR_CDW = 1200000
+    UNITS: m3/year
+Scenario_KAR:_Aggregate_demand = 4400000
+    UNITS: m3/year
+Scenario_KAR:_Excavation = 4300000
+    UNITS: m3/year
+Sensitivity_of_settlement_pressure = 2
+    UNITS: 1
+    DOCUMENT: Assumes a high sensitivity, to reflect the growing NIMBY phenomena in urban and developing areas. 
+Settlement_pressure[Region] =  (1+relative_developed_area)
+    UNITS: 1
+Start_time_period_2 = End_time_period_1+Duration_ramp_period_1
+    UNITS: year
+Start_time_period_3 = End_time_period_2
+    UNITS: year
+Starting_time_Period_1 = 2
+    UNITS: year
+"SWITCH_KAR_MODEL_(nur_für_section_2)_1" = IF Initiate_urban_transition=1 THEN 1 ELSE 0
+    UNITS: 1
+Switch_Region_A_Greenfield_development = IF Initiate_urban_transition=1 THEN 1 ELSE 0
+    UNITS: 1
+Switch_Region_A_Reduction = 0
+    UNITS: 1
+Switch_Region_A_Urban_densification = 0
+    UNITS: 1
+Switch_Region_A_Urban_renewal = 0
+    UNITS: 1
+Switch_Region_B_Greenfield_development = 0
+    UNITS: 1
+Switch_Region_B_Reduction = 0
+    UNITS: 1
+Switch_Region_B_Urban_densification = 0
+    UNITS: 1
+Switch_Region_B_Urban_renewal = 0
+    UNITS: 1
+Switch:_Circular_flows_Region_A = IF Initiate_urban_transition=1 THEN 1 ELSE 0
+    UNITS: 1
+Switch:_Period_2 = 1
+    UNITS: 1
+Switch:_Period_3 = 1
+    UNITS: 1
+Urban_densification[Region_A] = Switch_Region_A_Urban_densification
+    UNITS: 1
+Urban_densification[Region_B] = Switch_Region_B_Urban_densification
+    UNITS: 1
+Urban_renewal[Region_A] = Switch_Region_A_Urban_renewal
+    UNITS: 1
+Urban_renewal[Region_B] = Switch_Region_B_Urban_renewal
+    UNITS: 1
+
+Transport:
+Accumulated_ton_kilometers(t) = Accumulated_ton_kilometers(t - dt) + ("Annual_net_ton-kilometer") * dt
+    INIT Accumulated_ton_kilometers = 0
+    UNITS: t*km
+    DOCUMENT: The accumulated ton kilometers are used to assess the accumulated effect of the transport policy. 
+Fuel_costs_per_ton(t) = Fuel_costs_per_ton(t - dt) + (Fuel_price_adjustment) * dt
+    INIT Fuel_costs_per_ton = INIT(Fuel_costs_per_ton_of_material)
+    UNITS: chf/t
+"Annual_net_ton-kilometer" = ((SUM(Market.Aggregate_production)+SUM(Market.Recycled_gravel_production))*Reference_Average_transport_distance+(Gravel_imports_in_Region_A+Gravel_imports_in_Region_B)*Maximal_Transport_distance_gravel)+(SUM((Landfill.Disposal)*Settlement.Conversion_t_to_m3)*Reference_Average_transport_distance+(Exports_of_excavation_material_in_Region_B+Exports_of_excavation_material_in_Region_A)*Maximal_transport_distance_excavation_material)
+    UNITS: t*km/year
+    DOCUMENT: Both, the local production of gravel aggregates (primary and secondary) and the local disposal of excavation material is multiplied with the average transport distance whereas the for the netimports of gravel and excavation material are multplied with the maximum transprot distance. Net ton-kilometers serve as a unit of measurement for freight turnover in the assesment of local transport activity. 
+Fuel_price_adjustment = (Fuel_costs_per_ton_of_material-Fuel_costs_per_ton)/Time_to_adjust_fuel_costs
+    UNITS: CHF/t/year
+Average_costs_for_a_truckload = (Average_fuel_consumption*Reference_Average_transport_distance)*Price_per_liter
+    UNITS: Swiss Francs
+    DOCUMENT: The average truckload is calculated by multiplying the average transport distance with the average fuel consumption per kilometer and the price per liter, resulting in the average costs for fuel for a return trip of a full truckload.
+Average_fuel_consumption = 0.3
+    UNITS: l/km
+    DOCUMENT: The fuel consumption is deducted from an average consumption (30 l/ 100 km) for a 20t truck 
+Average_transport_distance = SMTH1("Annual_net_ton-kilometer"/(SUM(Settlement.Aggregate_demand)+(SUM(Landfill.Disposal)*Settlement.Conversion_t_to_m3)), DT,Reference_Average_transport_distance) {DELAY CONVERTER}
+    UNITS: km
+    DOCUMENT: By dividing the total annual ton kilometers by the total gravel demand and the total disposable material, the average transport distance in both region in calculated. 
+Average_truckload = 20
+    UNITS: t
+    DOCUMENT: The average truck in Switzerland is able to transport 20-25 tons of aggregate, smaller companies employ often fleets with a lower capacity. hence a conservative estimate of 20 t is chosen. 
+Delta_disposal_price = SMTH1(Disposal_Price_A-Disposal_Price_B, Time_to_perceive_price_for_excavation_material_in_other_region, Disposal_Price_A-Disposal_Price_B) {DELAY CONVERTER}
+    UNITS: CHF/t
+    DOCUMENT: Is is assumed that the delta between the disposal prices equals the trade margin, hence the disposal prices for both Region are compared.
+Delta_gravel_price = SMTH1(Gravel_price_Region_A-Gravel_price_Region_B, Time_to_perceive_price_of_other_region, Gravel_price_Region_A-Gravel_price_Region_B)
+    UNITS: CHF/t
+    DOCUMENT: The difference between the gravel price in region A and region B in CHF/t is the bases for the profitability of im/-exports. 
+Desired_excavation_imports_to_Region_A = MAX(0, SMTH1(((Disposable_material_Region_B)*(-"Effect_of_trade_indicator_on_net-exports")), "Time_to_adjust_net-exports_excavation_material", Initial_excavation_material_exports)) {DELAY CONVERTER}
+    UNITS: t/Years
+Desired_excavation_imports_to_Region_B = MAX(0, SMTH1((( Disposable_material_Region_A)*"Effect_of_trade_indicator_on_net-exports"), "Time_to_adjust_net-exports_excavation_material",Initial_excavation_material_exports)) {DELAY CONVERTER}
+    UNITS: t/Years
+Desired_gravel_imports_in_Region_A = MAX(0, SMTH1(Gravel_Demand_A*"Effect_of_gravel_price_on_net-imports", "Time_to_adjust_gravel_im/-exports", "Initial_net-imports")) {DELAY CONVERTER}
+    UNITS: t/Years
+Desired_gravel_imports_in_Region_B = MAX(0,  SMTH1(Gravel_demand_B*-"Effect_of_gravel_price_on_net-imports", "Time_to_adjust_gravel_im/-exports", "Initial_net-imports")) {DELAY CONVERTER}
+    UNITS: t/Years
+Disposable_material[Region] = Settlement.Excavation_Material-Extraction.Reference_Gravel_from_excavation_material+Market.Disposable_CDW
+    UNITS: t/Years
+Disposable_material_Region_A = MAX(0,( Landfill.Disposable_material_after_recovery[Region_A]+Market.Disposable_CDW[Region_A]))
+    UNITS: t/Years
+Disposable_material_Region_B = MAX(0,( Landfill.Disposable_material_after_recovery[Region_B]+Market.Disposable_CDW[Region_B]))
+    UNITS: t/Years
+Disposal_Price_A = Landfill.Disposal_price[Region_A]
+    UNITS: chf/t
+Disposal_Price_B = Landfill.Disposal_price[Region_B]
+    UNITS: chf/t
+Duration_of_Transport_tax_introduction = 5
+    UNITS: year
+    DOCUMENT: The transport tax is introduced over a period of 5 years. 
+Effect_of_gravel_net_imports_on_transport_costs = (1+Share_of_gravel_net_imports)^Sensitivity_Effect_of_Trade_on_transport_costs
+    UNITS: 1
+    DOCUMENT: Gravel exports require the transport service of region A and thereby increase the transport costs. It assumes that with an increasing share of exports, relative to the overall demand of the region, the transport costs rise. 
+"Effect_of_gravel_price_on_net-imports" = 2/(1+EXP(-"Reference_sensitivity_of_gravel_price_on_net-imports"*Indicator_imports))-1
+    UNITS: 1
+    DOCUMENT: The effect ranges from -1 to 1, whereas the a negative indicator leads to exports and a positive indicator to imports. 
+Effect_of_of_share_of_exports_on_transport_costs = (1+share_of_exports_disposable_material)^Sensitivity_of_share_of_exports_on_transport_costs
+    UNITS: 1
+    DOCUMENT: The 
+"Effect_of_trade_indicator_on_net-exports" = 2/(1+EXP(-"Reference_sensitivity_Effect_of_trade_indicator_on_excavation_net-exports"*Trade_indicator))-1
+    UNITS: 1
+    DOCUMENT: The effect of the trade indicator assumes that with increasing prices, there will be proportionally more exports. At -1 all material is exported, on 1 the annual demand is imported.
+Exports_of_excavation_material_in_Region_A = MIN(Maximum_imports_to_Region_A, Desired_excavation_imports_to_Region_A)
+    UNITS: t/Years
+    DOCUMENT: The negative net-exports are inverted, indicating the imports to Region A. The max function ensure that the value of the inverted net Exports is positiv, while the min-function ensure that the imports do not exceeds the local maximal disposal capacity of Region B.
+Exports_of_excavation_material_in_Region_B = MIN(Maximum_imports_to_Region_B, Desired_excavation_imports_to_Region_B)
+    UNITS: t/Years
+    DOCUMENT: The max function ensure that the value of the exports is non-negative, while the min-function ensure that the exports do not exceeds the local maximal disposal capacity of Region B.
+Fuel_costs_per_ton_of_material = (Ramp_Transport_tax*Average_costs_for_a_truckload)/Average_truckload
+    UNITS: chf/t
+    DOCUMENT: For each ton of transported material (aggergated, excavation material, CDW) the average costs are assumed to equal. 
+Gravel_Demand_A = MAX(0,  Settlement.Aggregate_demand[Region_A]+Market.Desired_stock_adjustment_aggregate_market[Region_A])
+    UNITS: t/Years
+Gravel_demand_B = MAX(0, Settlement.Aggregate_demand[Region_B]+Market.Desired_stock_adjustment_aggregate_market[Region_B])
+    UNITS: t/Years
+Gravel_imports_in_Region_A = MIN(Desired_gravel_imports_in_Region_A, Maximal_imports_in_Region_A)
+    UNITS: t/year
+    DOCUMENT: The min function ensure that the desired imports in region A do not exceed the maximum gravel sales of region B, while the max function ensure that the equation does not take a negative value. 
+Gravel_imports_in_Region_B = MIN(Desired_gravel_imports_in_Region_B, Maximal_imports_in_Region_B)
+    UNITS: t/Years
+    DOCUMENT: Desired exports are the inverted value of the desired net-imports. The max function ensure that only non-negative values are calculated. 
+Gravel_price_Region_A = Market.Primary_gravel_price[Region_A]
+    UNITS: chf/t
+Gravel_price_Region_B = Market.Primary_gravel_price[Region_B]
+    UNITS: chf/t
+Indicator_Average_transport_distance = PERCENT(Average_transport_distance/Reference_Average_transport_distance)-100
+    UNITS: 1
+Indicator_imports = Delta_gravel_price/Transport_costs_Gravel
+    UNITS: 1
+    DOCUMENT: The price delta divided by the transport costs gives an indicator of the regional im/-exports. Negative values indicate exports, while positive values indicate imports.  
+Initial_excavation_material_exports = INIT(SUM(Disposable_material)-SUM(Landfill.Volume_from_extraction-Landfill."Initial_Indicator_net-growth_disposal_volume")*Settlement.Conversion_t_to_m3)
+    UNITS: t/year
+    DOCUMENT: The delta between the generated volume by extraction and landscape adjustments, minus the disposal results in the initial exports. 
+"Initial_net-imports" = INIT(SUM(Settlement.Aggregate_demand)-SUM(Market.Aggregate_production))
+    UNITS: t/Years
+    DOCUMENT: The initial net-imports are 0, as both regions are initially self-sufficient. 
+Maximal_imports_in_Region_A = MIN(Gravel_demand_B-Market.Desired_stock_adjustment_aggregate_market[Region_B], Market.Maximal_aggregate_sales[Region_B])
+    UNITS: t/Years
+Maximal_imports_in_Region_B = MIN(Gravel_Demand_A-Market.Desired_stock_adjustment_aggregate_market[Region_A], Market.Maximal_aggregate_sales[Region_B])
+    UNITS: t/Years
+Maximal_transport_distance_excavation_material = Reference_Average_transport_distance*(1+((ABS(Delta_disposal_price)/Transport_costs_excavation_material)))
+    UNITS: km
+Maximal_Transport_distance_gravel = MAX(Reference_Average_transport_distance*(1+(-(Delta_gravel_price)/Transport_costs_Gravel)),  Reference_Average_transport_distance*(1+((Delta_gravel_price)/Transport_costs_Gravel)))
+    UNITS: km
+    DOCUMENT: Based on the price delta between two Regions, the transport distance which can be reached while remaining profitable is calculated. 
+Maximum_imports_to_Region_A = MAX(0, MIN(Landfill.Maximal_Disposal[Region_A]-Landfill.Disposable_material_after_recovery[Region_A], Landfill.Disposable_material_after_recovery[Region_B]))
+    UNITS: t/year
+Maximum_imports_to_Region_B = MAX(0, MIN(Landfill.Maximal_Disposal[Region_B]-Landfill.Disposable_material_after_recovery[Region_B], Landfill.Disposable_material_after_recovery[Region_A]))
+    UNITS: t/year
+Normalized_transport_distance = Average_transport_distance/Reference_Average_transport_distance
+    UNITS: 1
+Policy:_Factor_Transport_tax = 0
+    UNITS: 1
+    DOCUMENT: stimulates an increase of the fuel costs by multiplying the current price with this exogenous factor. 
+Price_per_liter = 1.5
+    UNITS: CHF/l
+    DOCUMENT: The price per liter is based on the average diesel price in Switzerland from 2017-2020.
+Ramp_Transport_tax = 1+RAMP(Policy:_Factor_Transport_tax/Duration_of_Transport_tax_introduction, Time_of_Transport_tax_introduction,  Time_of_Transport_tax_introduction+Duration_of_Transport_tax_introduction)
+    UNITS: 1
+Recovery_from_excavation_material[Region] = Extraction.Recovery_quota_excavation_material
+    UNITS: 1
+Reference_Average_transport_distance = 30
+    UNITS: km
+    DOCUMENT: 30 kilometers is the average distance a fully loaded trucks when delivering gravel and returning excavation material, based on case study insights. Comparable studies produced equal assumptions (Knoeri, 2015). 
+"Reference_sensitivity_Effect_of_trade_indicator_on_excavation_net-exports" = 0.7
+    UNITS: 1
+"Reference_sensitivity_of_gravel_price_on_net-imports" = 0.7
+    UNITS: 1
+Reycling_CDW[Region] = Market.Recycling_quota_CDW
+    UNITS: 1
+Sensitivity_Effect_of_Trade_on_transport_costs = 4
+    UNITS: 1
+Sensitivity_of_share_of_exports_on_transport_costs = 4
+    UNITS: 1
+share_of_exports_disposable_material = (Exports_of_excavation_material_in_Region_A+Exports_of_excavation_material_in_Region_B)/(SUM(Settlement.Excavation_Material)+SUM(Market.Disposable_CDW))
+    UNITS: 1
+    DOCUMENT: The share of exports is an important indicator to estimate the increase in transport costs.
+Share_of_gravel_net_imports = (Gravel_imports_in_Region_A+Gravel_imports_in_Region_B)/SUM(Settlement.Aggregate_demand)
+    UNITS: 1
+    DOCUMENT: Calculates the share of im/-exports relative to the total gravel demand in Region A.
+Time_of_Transport_tax_introduction = 30
+    UNITS: year
+    DOCUMENT: The year in which the transport tax is introduced. 
+Time_to_adjust_fuel_costs = 0.1
+    UNITS: year
+"Time_to_adjust_gravel_im/-exports" = 0.01
+    UNITS: year
+    DOCUMENT: Assumes that the prices of the two regions are compared on a monthly based, 
+"Time_to_adjust_net-exports_excavation_material" = 0.01
+    UNITS: year
+    DOCUMENT: The time it takes for perceiving changes in the change of regional prices.
+Time_to_adjust_transport_costs = 0.1
+    UNITS: year
+Time_to_perceive_price_for_excavation_material_in_other_region = 0.01
+    UNITS: year
+Time_to_perceive_price_of_other_region = 0.01
+    UNITS: year
+Trade_indicator = Delta_disposal_price//Transport_costs_excavation_material
+    UNITS: 1
+    DOCUMENT: The price delta between the disposal price of Region A and Region B is divided by the transport costs, which increase if exports increase.
+Transport_costs = Various_Transportation_costs+Fuel_costs_per_ton
+    UNITS: CHF/t
+    DOCUMENT: Transport costs [CHF/t] add fuel costs and additional costs. At 8 [CHF/t] all costs for regional transports within the average transport distance are covered.
+Transport_costs_excavation_material = MAX(Transport_costs, SMTH1(Transport_costs*Effect_of_of_share_of_exports_on_transport_costs, Time_to_adjust_transport_costs, Transport_costs)) {DELAY CONVERTER}
+    UNITS: CHF/t
+    DOCUMENT: The transport costs increase along with increasing exports, but never fall below the reference costs of 8 CHF/t for the local transports. 
+Transport_costs_Gravel = MAX(Transport_costs, SMTH1(Transport_costs*Effect_of_gravel_net_imports_on_transport_costs,Time_to_adjust_transport_costs , Transport_costs))
+    UNITS: CHF/t
+    DOCUMENT: The transport costs are increased with increasing exports, but do not undercut the reference costs for regional transports. 
+Various_Transportation_costs = 7.325
+    UNITS: CHF/t
+    DOCUMENT: These costs comprise of all personal, machinery and investments costs. 
+{ The model has 583 (888) variables (array expansion in parens).
+  In root model and 7 additional modules with 0 sectors.
+  Stocks: 21 (35) Flows: 30 (50) Converters: 532 (803)
+  Constants: 164 (178) Equations: 398 (675) Graphicals: 0 (0)
+  There are also 220 expanded macro variables.
+  }
