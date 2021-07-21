@@ -86,26 +86,12 @@ Landscape adjustments can foreclose disposal volume (if coverage > desired cover
 
 # References
 
-Coenen, Lars, Paul Benneworth, and Bernhard Truffer. 2012. “Toward a Spatial Perspective on Sustainability Transitions.” Research Policy 41 (6): 968–79. https://doi.org/10.1016/j.respol.2012.02.014.
-
 Foxon, Timothy J. 2011. “A Coevolutionary Framework for Analysing a Transition to a Sustainable Low Carbon Economy.” Ecological Economics 70 (12): 2258–67. https://doi.org/10.1016/j.ecolecon.2011.07.014.
 
 Holtz, Georg, Floortje Alkemade, Fjalar De Haan, Jonathan Köhler, Evelina Trutnevyte, Tobias Luthe, Johannes Halbe, et al. 2015. “Prospects of Modelling Societal Transitions: Position Paper of an Emerging Community.” Environmental Innovation and Societal Transitions 17: 41–58. https://doi.org/10.1016/j.eist.2015.05.006.
 
-Kytzia, Susanne. 2000. “Modelling the Transformation of the Residential Building Stock – a Case Study for the City of St . Gall Short Summary.”
-
-Meglin, R., D. Kliem, A. Scheidegger, and S. Kytzia. 2019. “Business-Models of Gravel, Cement and Concrete Producers in Switzerland and Their Relevance for Resource Management and Economic Development on Regional a Scale.” IOP Conference Series: Earth and Environmental Science 323 (1). https://doi.org/10.1088/1755-1315/323/1/012170.
-
-Rubli, Stefan, and Martin Schneider. 2018. “KAR-Modell - Modellierung Der Kies-, Rückbau- Und Aushubmaterialflüsse : Modellerweiterung Und Nachführung 2016.” Zurich. http://www.kar-modell.ch/uploads/KAR-Modell_Ueberregional_2016.pdf.
-
 Schiller, Georg, Tamara Bimesmeier, and Anh T.V. Pham. 2020. “Method for Quantifying Supply and Demand of Construction Minerals in Urban Regions-A Case Study of Hanoi and Its Hinterland.” Sustainability (Switzerland) 12 (11). https://doi.org/10.3390/su12114358.
-
-Schwaninger, Markus, and Stefan Groesser. 2018. “System Dynamics Modeling: Validation for Quality Assurance.” Encyclopedia of Complexity and Systems Science, 1–20. https://doi.org/10.1007/978-3-642-27737-5_540-4.
-
-Sterman, John D. 2000. Systems Thinking and Modeling for a Complex World. Management. Vol. 6. https://doi.org/10.1108/13673270210417646.
 
 Suprun, Emiliya, Oz Sahin, Rodney Anthony Stewart, and Kriengsak Panuwatwanich. 2019. “Examining Transition Pathways to Construction Innovation in Russia: A System Dynamics Approach.” International Journal of Construction Management 0 (0): 1–23. https://doi.org/10.1080/15623599.2019.1637628.
 
 Sverdrup, Harald U., Deniz Koca, and Peter Schlyter. 2017. “A Simple System Dynamics Model for the Global Production Rate of Sand, Gravel, Crushed Rock and Stone, Market Prices and Long-Term Supply Embedded into the WORLD6 Model.” BioPhysical Economics and Resource Quality 2 (2): 8. https://doi.org/10.1007/s41247-017-0023-2.
- 
-
