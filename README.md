@@ -20,7 +20,7 @@ Three questions appeared as relevant and can be consistently answered though sim
 3.	What limits the uptake of recycled aggregates?
 
 ## Get started
-- Open Stellar / Install free [Stellar Playeer](https://www.iseesystems.com/softwares/player/iseeplayer.aspx)
+- Open Stellar / Install free [Stellar Player](https://www.iseesystems.com/softwares/player/iseeplayer.aspx)
 
 - Open the .stmx file.					 # Opens model 
 
