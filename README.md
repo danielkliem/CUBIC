@@ -1,4 +1,4 @@
-# CUBIC - A Sytem Dynamics Model of swiss construction material industries transition towards a circular economy 
+## CUBIC - A Sytem Dynamics Model of swiss construction material industries transition towards a circular economy 
 
 The transition towards a circular economy in Switzerland is driven by land-use conflicts between urban development, rural landscape and demand for primary materials. While mineral materials account for almost 50 % of the national metabolism only around 30% of the recycling potential is realized. Recycling of different materials increased in recent years in some regions but remains at low levels in other regions. This results in the paradox situation of companies trying to increase the secondary resource utilization, but at the same time companies increase gravel extraction to create volume for disposal. This model teaches the drivers and barriers of such transitions towards circular consumption and production systems, from the perspective of companies and regional policy makers. However, the chosen dynamic problem also excludes the following processes that are only marginally relevant for the question. 
 The goal of the model is (A) to explain the limits to the common misperceptions about drivers to the transitions, (B) enable policy experiments, and (C) explicate institutional decision-making structures. 
@@ -19,8 +19,8 @@ Three questions appeared as relevant and can be consistently answered though sim
 2.	What drives the recycling of excavation material?
 3.	What limits the uptake of recycled aggregates?
 
-# Get started
-- Install Stellar / Stellar Player (free version)
+## Get started
+- Open Stellar / Install free [Stellar Playeer](https://www.iseesystems.com/softwares/player/iseeplayer.aspx)
 
 - Open the .stmx file.					 # Opens model 
 
@@ -39,7 +39,7 @@ Set the respective values for the fiscal, administrative and soft policies (as d
 Can I test other construction activity regimes? 
 Yes, set “Initiate urban transition” to 0. Go to “Customize Material Flows Region A/B” and selected % change of (Gravel, CDW, Excavation material) in both regions.
 
-# Model background
+## Model background
 
 The model covers the time horizon from 2010 to 2085, as 75 years is considered a sufficient time frame to capture the unfolding long term dynamics of the ponderous construction material industry (Suprun et al. 2019), i.e. 75 years is twice the longest adjustment time of the model. The model is developed from a co-evolutionary- socio-technical transitions perspective (Foxon 2011), a rather novel application for quantitative system dynamics modelling (Holtz et al. 2015). Conceptually, it regionalizes the approach of the World 6 model, combining biophysical material flows with market dynamics (Sverdrup, Koca, and Schlyter 2017). This regional perspective on socio-technical transitions uses social dynamics as well as innovation dynamics to understand the trajectory of the industry (Coenen, Benneworth, and Truffer 2012). The biophysical structure is focused on mineral construction material, especially aggregates, excavation material and construction and demolition waste (CDW). The production of aggregates includes extracting primary gravel from gravel quarries, recovering primary gravel that is naturally contained by excavation material and recycling secondary gravel from CDW. 
 Existing data from regional material-flow-analysis was complemented with empirical data from a series of group model building workshops and a case study with 8 companies, looking at the consequences of land-use for extraction and disposal on interregional development. Driven by the settlement development in two Regions, the model looks the primary and secondary aggregate market, primary resource extraction and landfill management. 
@@ -47,7 +47,7 @@ Region A represents an urban area with little undeveloped area remaining, high p
 In this model, sustainable usage of natural resources is key to reduce the demand for land, i.e. extraction of primary resources and disposal of mineral waste. Public policies, ranging from spatial planning, waste management, public procurement and fiscal policies are used to increase the rate of recycling and reduce transports. Material flows and associated transports between the regions are used to understand the consequences of population development and construction activity on the development on Region A and region B. Improving sustainability indicator for both regions can be achieved by introducing various public policies. This simulation helps to understand the effect of policies, showing intended effects and unintended consequences. 
 
 
-# FAQ
+## FAQ
 Does the model predict future developments?
 No. The goal is to increase general understanding of the dynamics, rather than providing exact predictions.
 
